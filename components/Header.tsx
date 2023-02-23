@@ -4,6 +4,7 @@ import Logo from '@/data/logo.svg'
 import Link from './Link'
 import MobileNav from './MobileNav'
 import ThemeSwitch from './ThemeSwitch'
+import Typical from 'react-typical'
 
 const Header = () => {
   return (
@@ -11,12 +12,12 @@ const Header = () => {
       <div>
         <Link href="/" aria-label={siteMetadata.headerTitle}>
           <div className="flex items-center justify-between">
-            <div className="mr-3">
-              <Logo />
+            <div className="hidden h-6 text-2xl font-semibold sm:block">
+              <p className="text-pink-400">import&nbsp;&nbsp;</p>
             </div>
             {typeof siteMetadata.headerTitle === 'string' ? (
-              <div className="hidden h-6 text-2xl font-semibold sm:block">
-                {siteMetadata.headerTitle}
+              <div className="h-6 text-2xl font-semibold sm:block">
+                <Typical steps={[siteMetadata.headerTitle, 100]} loop={1} wrapper="p" />
               </div>
             ) : (
               siteMetadata.headerTitle

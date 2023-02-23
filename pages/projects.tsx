@@ -13,21 +13,30 @@ export default function Projects() {
             Projects
           </h1>
           <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
-            Showcase your projects with a hero image (16 x 9)
+            自分が開発したアプリたちです
           </p>
         </div>
-        <div className="container py-12">
-          <div className="-m-4 flex flex-wrap">
-            {projectsData.map((d) => (
-              <Card
-                key={d.title}
-                title={d.title}
-                description={d.description}
-                imgSrc={d.imgSrc}
-                href={d.href}
-              />
-            ))}
-          </div>
+        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+          {projectsData.map((d) => (
+            <div className="space-y-2 pt-6 pb-8 md:space-y-5" key={d.id}>
+              <h3 className="mb-4 text-3xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100">
+                {d.header}
+              </h3>
+              <div className="-m-4 flex flex-wrap">
+                {d.contents.map((content) => {
+                  return (
+                    <Card
+                      key={content.title}
+                      title={content.title}
+                      description={content.description}
+                      imgSrc={content.imgSrc}
+                      href={content.href}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </>
