@@ -1,0 +1,113 @@
+---
+title: ICP チュートリアル1
+date: '2023-03-29'
+tags: ['ICP', 'Web3.0', 'motoko']
+draft: false
+summary: 'チュートリアルメモ'
+authors: ['gypsyR']
+---
+
+# 基本的な流れは以下
+
+1. プロジェクト作成 `dfx new キャニスター名`
+2. ソースファイル名　＆ dfx.json 編集
+3. コーディング
+4. 起動 `dfx start --background`
+5. ビルド＆デプロイ `dfx deploy`
+6. 実行(キャニスターコール) `dfx canister call キャニスター名 メソッド名 引数あれば最後`
+
+キャニスターデプロイしたとき、キャニスター ID は`.dfx/local/canister_ids.json`に書かれているが下記コマンドでも表示可能
+
+```
+キャニスター名 % dfx canister id キャニスター名
+```
+
+# [Candid UI](https://smacon.dev/posts/motoko-my-counter) デプロイしてるキャニスターを CUI で触れる。
+
+ローカル IC にデプロイされたキャニスターの一覧は以下のファイルに保存されている。
+キャニスター名 % cat .dfx/local/canister_ids.json
+
+```
+dfx start --background
+```
+
+ブラウザを使って下記にアクセス。自分の環境の\_\_Candid_UI のキャニスター ID に置き換える。
+
+```
+http://127.0.0.1:8000/?canisterId=<CANDID-UI-CANISTER-IDENTIFIER>
+```
+
+candid_UI にデプロイしたキャニスター ID を入力してみよう。
+【補足】下記コマンドでキャニスター ID チェック可能(以下 my_counter プロジェクトの場合)
+
+```
+my_counter % dfx canister id my_counter
+```
+
+終わったら`dfx stop`
+
+---
+
+# [はじめてのアクター](https://smacon.dev/posts/motoko-actor-hello)
+
+### プロジェクトを作る
+
+```
+dfx new actor_hello
+cd actor_hello
+```
+
+### コーディング
+
+### ビルド前チェック --check オプションを付けると、一時的な Canister ID を使ってローカル環境でコンパイルを実行
+
+```
+actor_hello % dfx build --check
+```
+
+### デプロイ及びキャニスター登録
+
+実行環境起動 ⇒ キャニスター登録 ⇒ ビルド ⇒ デプロイ
+
+```
+dfx start --background
+
+dfx canister create actor_hello
+
+dfx build
+
+dfx canister install actor_hello
+```
+
+### 実行＆停止
+
+actor_hello というキャニスターの hello()という関数を call
+
+```
+dfx canister call actor_hello hello
+dfx stop
+```
+
+# [パラメータを渡してキャニスターを実行する](https://smacon.dev/posts/motoko-location-hello)
+
+### プロジェクト作成 ⇒ コーディング ⇒ 実行環境の起動 ⇒ ビルド＆デプロイ
+
+```
+dfx new location_hello
+cd location_hello
+
+# コーディング
+# MotokoやRust
+
+dfx start
+dfx deploy
+
+# 各種実行（以下例）
+
+dfx canister call location_hello location "San Francisco"
+dfx canister call location_hello location Paris
+
+dfx stop
+```
+
+# Candid UI

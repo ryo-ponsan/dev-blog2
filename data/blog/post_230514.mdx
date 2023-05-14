@@ -1,0 +1,325 @@
+---
+title: chatGPT session
+date: '2023-05-15'
+tags: ['chatGPT', 'OpenAI', 'API']
+draft: false
+summary: 'guideline'
+authors: ['gypsyR']
+---
+
+# titles
+
+- [How to use OpenAI API on Python](#0)
+- [Principle 1: Write clear and specific instructions](#1)
+  - [Tactic 1: Use delimiters to clearly indicate distinct parts of the input](#1)
+  - [Tactic 2: Ask for a structured output](#1)
+  - [Tactic 3: Ask the model to check whether conditions are satisfied](#1)
+  - [Tactic 4: "Few-shot" prompting](#1)
+- [Principle 2: Give the model time to “think”](#1)
+  - [Tactic 1: Specify the steps required to complete a task](#1)
+  - [Ask for output in a specified format](#1)
+  - [Tactic 2: Instruct the model to work out its own solution before rushing to a conclusion](#1)
+  - [Model Limitations: Hallucinations](#1)
+
+# Two types of large language models
+
+- Base LLM
+- Instruction Tuned LLM
+  - RLHF
+  - Helpful,. Honest, Harmless
+
+<a id="0"></a>
+
+# 0.How to use OpenAI API on Python
+
+## Load API key
+
+```
+import openai
+import os
+
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv())
+
+openai.api_key  = os.getenv('OPENAI_API_KEY')
+
+def get_completion(prompt, model="gpt-3.5-turbo"):
+    messages = [{"role": "user", "content": prompt}]
+    response = openai.ChatCompletion.create(
+        model=model,
+        messages=messages,
+        temperature=0, # this is the degree of randomness of the model's output
+    )
+    return response.choices[0].message["content"]
+```
+
+# Prompting Principles
+
+# 1. Guidelines
+
+1. write clear and specific instructions
+2. give the model time to "think"
+
+<a id="1"></a>
+
+## **Principle 1: Write clear and specific instructions**
+
+#### Tactic 1: Use delimiters to clearly indicate distinct parts of the input
+
+- Delimiters can be anything like: ```, """, < >, `<tag> </tag>`, `:`
+
+````
+prompt = f"""
+Summarize the text delimited by triple backticks \
+into a single sentence.
+```{text}```
+"""
+response = get_completion(prompt)
+print(response)
+````
+
+#### Tactic 2: Ask for a structured output
+
+- JSON, HTML
+- python can read as dictionary type
+
+```
+prompt = f"""
+Generate a list of three made-up book titles along \
+with their authors and genres.
+Provide them in JSON format with the following keys:
+book_id, title, author, genre.
+"""
+response = get_completion(prompt)
+print(response)
+```
+
+#### Tactic 3: Ask the model to check whether conditions are satisfied
+
+```
+prompt = f"""
+You will be provided with text delimited by triple quotes.
+If it contains a sequence of instructions, \
+re-write those instructions in the following format:
+
+Step 1 - ...
+Step 2 - …
+…
+Step N - …
+
+If the text does not contain a sequence of instructions, \
+then simply write \"No steps provided.\"
+
+\"\"\"{text_1}\"\"\"
+"""
+response = get_completion(prompt)
+print("Completion for Text 1:")
+print(response)
+```
+
+#### Tactic 4: "Few-shot" prompting
+
+```
+prompt = f"""
+Your task is to answer in a consistent style.
+
+<child>: Teach me about patience.
+
+<grandparent>: The river that carves the deepest \
+valley flows from a modest spring; the \
+grandest symphony originates from a single note; \
+the most intricate tapestry begins with a solitary thread.
+
+<child>: Teach me about resilience.
+"""
+response = get_completion(prompt)
+print(response)
+```
+
+## **Principle 2: Give the model time to “think”**
+
+#### Tactic 1: Specify the steps required to complete a task
+
+````
+# example 1
+prompt_1 = f"""
+Perform the following actions:
+1 - Summarize the following text delimited by triple \
+backticks with 1 sentence.
+2 - Translate the summary into French.
+3 - List each name in the French summary.
+4 - Output a json object that contains the following \
+keys: french_summary, num_names.
+
+Separate your answers with line breaks.
+
+Text:
+```{text}```
+"""
+response = get_completion(prompt_1)
+print("Completion for prompt 1:")
+print(response)
+````
+
+#### Ask for output in a specified format
+
+```
+prompt_2 = f"""
+Your task is to perform the following actions:
+1 - Summarize the following text delimited by
+  <> with 1 sentence.
+2 - Translate the summary into French.
+3 - List each name in the French summary.
+4 - Output a json object that contains the
+  following keys: french_summary, num_names.
+
+Use the following format:
+Text: <text to summarize>
+Summary: <summary>
+Translation: <summary translation>
+Names: <list of names in Italian summary>
+Output JSON: <json with summary and num_names>
+
+Text: <{text}>
+"""
+response = get_completion(prompt_2)
+print("\nCompletion for prompt 2:")
+print(response)
+```
+
+#### Tactic 2: Instruct the model to work out its own solution before rushing to a conclusion
+
+Not good example. ChatGPT's **weak point**
+
+```
+prompt = f"""
+Determine if the student's solution is correct or not.
+
+Question:
+I'm building a solar power installation and I need \
+ help working out the financials.
+- Land costs $100 / square foot
+- I can buy solar panels for $250 / square foot
+- I negotiated a contract for maintenance that will cost \
+me a flat $100k per year, and an additional $10 / square \
+foot
+What is the total cost for the first year of operations
+as a function of the number of square feet.
+
+Student's Solution:
+Let x be the size of the installation in square feet.
+Costs:
+1. Land cost: 100x
+2. Solar panel cost: 250x
+3. Maintenance cost: 100,000 + 100x
+Total cost: 100x + 250x + 100,000 + 100x = 450x + 100,000
+"""
+response = get_completion(prompt)
+print(response)
+```
+
+#### Note that the student's solution is actually not correct.
+
+#### We can fix this by instructing the model to work out its own solution first.
+
+Good example
+
+```
+prompt = f"""
+Your task is to determine if the student's solution \
+is correct or not.
+To solve the problem do the following:
+- First, work out your own solution to the problem.
+- Then compare your solution to the student's solution \
+and evaluate if the student's solution is correct or not.
+Don't decide if the student's solution is correct until
+you have done the problem yourself.
+
+Use the following format:
+Question:
+```
+
+question here
+
+```
+Student's solution:
+```
+
+student's solution here
+
+```
+Actual solution:
+```
+
+steps to work out the solution and your solution here
+
+```
+Is the student's solution the same as actual solution \
+just calculated:
+```
+
+yes or no
+
+```
+Student grade:
+```
+
+correct or incorrect
+
+```
+
+Question:
+```
+
+I'm building a solar power installation and I need help \
+working out the financials.
+
+- Land costs $100 / square foot
+- I can buy solar panels for $250 / square foot
+- I negotiated a contract for maintenance that will cost \
+  me a flat $100k per year, and an additional $10 / square \
+  foot
+  What is the total cost for the first year of operations \
+  as a function of the number of square feet.
+
+```
+Student's solution:
+```
+
+Let x be the size of the installation in square feet.
+Costs:
+
+1. Land cost: 100x
+2. Solar panel cost: 250x
+3. Maintenance cost: 100,000 + 100x
+   Total cost: 100x + 250x + 100,000 + 100x = 450x + 100,000
+
+```
+Actual solution:
+"""
+response = get_completion(prompt)
+print(response)
+```
+
+And one additional tactic to reduce hallucinations in
+the case that you want the model to kind of generate answers
+based on a text is to ask the model to first find
+any relevant quotes from the text and then
+ask it to use those quotes to kind of answer questions and
+kind of having a way to trace the answer back to the
+source document is often pretty helpful to kind
+of reduce these hallucinations.
+
+## Model Limitations: Hallucinations
+
+- Boie is a real company, the product name is not real.
+
+```
+prompt = f"""
+Tell me about AeroGlide UltraSlim Smart Toothbrush by Boie
+"""
+response = get_completion(prompt)
+print(response)
+```
+
+**Reducing hallucinations: **First find relevant information, then answer the question based on the relevant information

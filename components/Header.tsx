@@ -13,10 +13,10 @@ const Header = () => {
         <Link href="/" aria-label={siteMetadata.headerTitle}>
           <div className="flex items-center justify-between">
             <div className="hidden h-6 text-2xl font-semibold sm:block">
-              <p className="text-pink-400">import&nbsp;&nbsp;</p>
+              {/* <p className="text-pink-400">import&nbsp;&nbsp;</p> */}
             </div>
             {typeof siteMetadata.headerTitle === 'string' ? (
-              <div className="h-6 text-2xl font-semibold sm:block">
+              <div className="h-6 text-2xl font-semibold sm:block text-green-500">
                 <Typical steps={[siteMetadata.headerTitle, 100]} loop={1} wrapper="p" />
               </div>
             ) : (
