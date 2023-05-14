@@ -1,3 +1,3 @@
-# masaki-dev
+# gypsy-dev
 
-masaki-dev のリポジトリです。[Tailwind Nextjs Theme](https://github.com/timlrx/tailwind-nextjs-starter-blog)を利用して構築しています。
+gypsy-dev のリポジトリです。[Tailwind Nextjs Theme](https://github.com/timlrx/tailwind-nextjs-starter-blog)を利用して構築しています。
