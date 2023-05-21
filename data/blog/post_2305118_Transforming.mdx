@@ -1,0 +1,214 @@
+---
+title: Transforming
+date: '2023-05-21'
+tags: ['chatGPT', 'OpenAI', 'API']
+draft: false
+summary: 'Transforming'
+authors: ['gypsyR']
+---
+
+# titles
+
+言語翻訳、スペルチェック、文法チェック、トーン調整、フォーマット変換などのテキスト変換タスクにLarge Language Modelsを使用する方法。
+
+- [翻訳](#0)
+- [多言語翻訳](#1)
+- [口調のトーン変える](#2)
+- [フォーマットの変更](#3)
+- [校正・スペルチェック](#4)
+
+
+
+```
+import openai
+import os
+
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv()) # read local .env file
+
+openai.api_key  = os.getenv('OPENAI_API_KEY')
+
+def get_completion(prompt, model="gpt-3.5-turbo", temperature=0): 
+    messages = [{"role": "user", "content": prompt}]
+    response = openai.ChatCompletion.create(
+        model=model,
+        messages=messages,
+        temperature=temperature, 
+    )
+    return response.choices[0].message["content"]
+```
+
+
+<a id="0"></a>
+
+## 翻訳
+
+多くの言語のソースを用いてトレーニングされています。このため、モデルには翻訳の能力が備わっています。
+
+```
+prompt = f"""
+Translate the following text to Spanish in both the \
+formal and informal forms: 
+'Would you like to order a pillow?'
+"""
+response = get_completion(prompt)
+print(response)
+```
+
+<a id="1"></a>
+
+## 多言語
+
+```
+user_messages = [
+  "La performance du système est plus lente que d'habitude.",  # System performance is slower than normal         
+  "Mi monitor tiene píxeles que no se iluminan.",              # My monitor has pixels that are not lighting
+  "Il mio mouse non funziona",                                 # My mouse is not working
+  "Mój klawisz Ctrl jest zepsuty",                             # My keyboard has a broken control key
+  "我的屏幕在闪烁"                                               # My screen is flashing
+] 
+```
+
+```
+for issue in user_messages:
+    prompt = f"Tell me what language this is: ```{issue}```"
+    lang = get_completion(prompt)
+    print(f"Original message ({lang}): {issue}")
+
+    prompt = f"""
+    Translate the following  text to English \
+    and Korean: ```{issue}```
+    """
+    response = get_completion(prompt)
+    print(response, "\n")
+```
+
+Output:
+
+```
+Original message (This is French.): La performance du système est plus lente que d'habitude.
+English: The system performance is slower than usual.
+Korean: 시스템 성능이 평소보다 느립니다. 
+
+Original message (This is Spanish.): Mi monitor tiene píxeles que no se iluminan.
+English: My monitor has pixels that don't light up.
+Korean: 내 모니터에는 불이 켜지지 않는 픽셀이 있습니다. 
+
+Original message (This is Italian.): Il mio mouse non funziona
+English: My mouse is not working.
+Korean: 내 마우스가 작동하지 않습니다. 
+
+Original message (This is Polish.): Mój klawisz Ctrl jest zepsuty
+English: My Ctrl key is broken.
+Korean: 제 Ctrl 키가 고장 났어요. 
+
+Original message (This is Chinese (Simplified).): 我的屏幕在闪烁
+English: My screen is flickering.
+Korean: 내 화면이 깜빡입니다. 
+
+```
+
+<a id="2"></a>
+
+## 口調のトーン変える
+
+```
+prompt = f"""
+Translate the following from slang to a business letter: 
+'Dude, This is Joe, check out this spec on this standing lamp.'
+"""
+response = get_completion(prompt)
+print(response)
+```
+
+<a id="3"></a>
+
+## フォーマットの変更
+json, HTML, xml, md... 
+
+### jsonから、HTMLへ
+```
+data_json = { "resturant employees" :[ 
+    {"name":"Shyam", "email":"shyamjaiswal@gmail.com"},
+    {"name":"Bob", "email":"bob32@gmail.com"},
+    {"name":"Jai", "email":"jai87@gmail.com"}
+]}
+
+prompt = f"""
+Translate the following python dictionary from JSON to an HTML \
+table with column headers and title: {data_json}
+"""
+response = get_completion(prompt)
+print(response)
+```
+### HTMLを画面表示
+```
+from IPython.display import display, Markdown, Latex, HTML, JSON
+display(HTML(response))
+```
+
+<a id="4"></a>
+
+## スペルチェック
+得意
+
+```
+text = [ 
+  "The girl with the black and white puppies have a ball.",  # The girl has a ball.
+  "Yolanda has her notebook.", # ok
+  "Its going to be a long day. Does the car need it’s oil changed?",  # Homonyms
+  "Their goes my freedom. There going to bring they’re suitcases.",  # Homonyms
+  "Your going to need you’re notebook.",  # Homonyms
+  "That medicine effects my ability to sleep. Have you heard of the butterfly affect?", # Homonyms
+  "This phrase is to cherck chatGPT for speling abilitty"  # spelling
+]
+for t in text:
+    prompt = f"""Proofread and correct the following text
+    and rewrite the corrected version. If you don't find
+    and errors, just say "No errors found". Don't use 
+    any punctuation around the text:
+    ```{t}```"""
+    response = get_completion(prompt)
+    print(response)
+```
+
+output:
+
+```
+The girl with the black and white puppies has a ball.
+No errors found.
+It's going to be a long day. Does the car need its oil changed?
+Their goes my freedom. There going to bring they're suitcases.
+
+Corrected version: 
+There goes my freedom. They're going to bring their suitcases.
+You're going to need your notebook.
+That medicine affects my ability to sleep. Have you heard of the butterfly effect?
+This phrase is to check ChatGPT for spelling ability.
+```
+
+### 校正して、オリジナルとの差異を可視化
+
+```
+text = f"""
+Got this for my daughter for her birthday cuz she keeps taking \
+mine from my room.  Yes, adults also like pandas too.  She takes \
+it everywhere with her, and it's super soft and cute.  One of the \
+ears is a bit lower than the other, and I don't think that was \
+designed to be asymmetrical. It's a bit small for what I paid for it \
+though. I think there might be other options that are bigger for \
+the same price.  It arrived a day earlier than expected, so I got \
+to play with it myself before I gave it to my daughter.
+"""
+prompt = f"proofread and correct this review: ```{text}```"
+response = get_completion(prompt)
+print(response)
+```
+### 差異を可視化
+
+```
+from redlines import Redlines
+
+diff = Redlines(text,response)
+display(Markdown(diff.output_markdown))
+```
