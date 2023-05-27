@@ -45,7 +45,7 @@ const CommonSEO = ({
       <meta name="twitter:site" content={siteMetadata.twitter} />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={twImage} />
+      <meta name="twitter:image" content={siteMetadata.socialBanner} />
       <link
         rel="canonical"
         href={canonicalUrl ? canonicalUrl : `${siteMetadata.siteUrl}${router.asPath}`}
