@@ -2,20 +2,20 @@
 
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'anderson-gypsy',
+  title: 'gypsy-blog',
   author: 'anderson-gypsy-blog',
   headerTitle: 'Wake Up, Gypsy ...',
   description: 'About daily news and development',
   language: 'ja',
   theme: 'system', // system, dark or light
   siteUrl: 'https://dev-blog-gypsyr.vercel.app/',
-  siteRepo: '',
+  siteRepo: 'https://dev-blog-gypsyr.vercel.app/',
   siteLogo: '/static/images/logo.png',
   image: '/static/images/avatar.jpeg',
-  socialBanner: '/static/images/twitter-card.png',
-  email: 'ryo.pon.san.business@gmail.com',
+  email: '',
   github: 'https://github.com/ryo-ponsan',
   twitter: 'https://twitter.com/anderson_Gypsy',
+  socialBanner: '/static/images/logo.png',
   // giita: 'https://qiita.com/district_13_bm',
   //facebook: 'https://facebook.com',
   //youtube: 'https://youtube.com',
