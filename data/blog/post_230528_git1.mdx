@@ -1,0 +1,42 @@
+---
+title: git pushでタイムアウト
+date: '2023-05-28'
+tags: ['GitHub']
+draft: false
+summary: 'GitHub'
+authors: ['gypsyR']
+---
+
+# タイムアウト
+
+```
+PS C:\Users\user\source\dev\nextjs\blog> git push origin test
+Enumerating objects: 304, done.
+Counting objects: 100% (304/304), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (271/271), done.
+error: RPC failed; HTTP 408 curl 22 The requested URL returned error: 408
+send-pack: unexpected disconnect while reading sideband packet
+Writing objects: 100% (304/304), 6.51 MiB | 61.00 KiB/s, done.
+Total 304 (delta 111), reused 138 (delta 21), pack-reused 0
+fatal: the remote end hung up unexpectedly
+Everything up-to-date
+```
+
+このエラーは、`git push`操作がリモートリポジトリとのコミュニケーション中に問題が発生したことを示しています。HTTP 408 エラーは、リクエストがタイムアウトしたことを意味します。いくつかの一般的な解決策を試してみてください。
+
+1. インターネット接続を確認してください。接続が不安定であるか、速度が遅い場合、操作がタイムアウトする可能性があります。
+
+2. Git の設定を変更して、より長いタイムアウト時間を設定してください。以下のコマンドを実行して、タイムアウトを 300 秒（5 分）に設定できます。
+
+   ```
+   git config --global http.postBuffer 524288000
+   git config --global http.lowSpeedLimit 1000
+   git config --global http.lowSpeedTime 300
+   ```
+
+3. リポジトリのサイズが大きい場合、特に大きなファイルが含まれている場合、`git push`操作がタイムアウトする可能性が高くなります。`.gitignore`ファイルを使用して、リポジトリに追加されないように大きなファイルや不要なファイルを指定できます。これにより、リポジトリのサイズが削減され、`git push`操作が速くなることがあります。
+
+4. リモートリポジトリのサーバーが一時的に問題を抱えている場合があります。サーバーの問題が解決されるのを待ってから、再度`git push`を試してください。
+
+これらの解決策のいずれかが問題を解決しない場合は、リモートリポジトリのホスティングプロバイダーに問い合わせて、サポートを求めることを検討してください。
