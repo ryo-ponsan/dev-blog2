@@ -1,6 +1,6 @@
 import siteMetadata from '@/data/siteMetadata'
 import headerNavLinks from '@/data/headerNavLinks'
-import Logo from '@/data/logo.svg'
+// import Logo from '@/data/logo.svg'
 import Link from './Link'
 import MobileNav from './MobileNav'
 import ThemeSwitch from './ThemeSwitch'
@@ -16,7 +16,7 @@ const Header = () => {
               {/* <p className="text-pink-400">import&nbsp;&nbsp;</p> */}
             </div>
             {typeof siteMetadata.headerTitle === 'string' ? (
-              <div className="h-6 text-2xl font-semibold sm:block text-green-500">
+              <div className="h-6 text-2xl font-semibold text-green-500 sm:block">
                 <Typical steps={[siteMetadata.headerTitle, 100]} loop={1} wrapper="p" />
               </div>
             ) : (

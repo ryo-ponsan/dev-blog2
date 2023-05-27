@@ -159,9 +159,6 @@ module.exports = {
             // code: {
             //   backgroundColor: theme('colors.gray.800'),
             // },
-            details: {
-              backgroundColor: theme('colors.gray.800'),
-            },
             hr: { borderColor: theme('colors.gray.700') },
             'ol li::marker': {
               fontWeight: '600',
