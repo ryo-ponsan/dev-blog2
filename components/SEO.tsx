@@ -167,7 +167,8 @@ export const BlogSEO = ({
     description: summary,
   }
 
-  const twImageUrl = featuredImages[0].url
+  // const twImageUrl = featuredImages[0].url
+  const twImageUrl = siteMetadata.siteUrl + siteMetadata.socialBanner
 
   return (
     <>

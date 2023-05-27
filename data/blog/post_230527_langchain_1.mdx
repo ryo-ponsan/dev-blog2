@@ -1,21 +1,27 @@
 ---
 title: LangChainで論文読み効率化#1
-date: '2023-05-27'  
+date: '2023-05-27'
 tags: ['LangChain', 'chatGPT', 'OpenAI', 'API']
 draft: false
 summary: 'LangChain'
 authors: ['gypsyR']
 ---
-# 論文の概要を把握するテンプレート
-社内向けに便利ツール紹介という名目で作ってました。  
-Google Colab上でOpenAIのAPI keyと読み込みたい論文PDFを入力し、  
-「すべてのセルを実行」で試せます。ご自由にご活用ください。
 
-## 原理
+# 論文の概要を把握するテンプレート
+
+社内向けに便利ツール紹介という名目で作りました。  
+Google Colab 上で OpenAI の API key と読み込みたい論文 PDF を入力し、  
+「すべてのセルを実行」で試せます。ご自由にご活用ください。
+ちょっとコードやプロンプトを編集すれば、様々な情報を取得し、  
+他のデータに変換できます。  
+対応外部データ詳細については [LangChain Indexes のドキュメント 👈](https://python.langchain.com/en/latest/modules/indexes/document_loaders.html)
+
+## フロー
 
 - 大量のテキストデータを保有する PDF を 分割
 - エンベディング
-- ChromaDB に保存
-
+- ベクトル化したデータを[ChromaDB](https://www.trychroma.com/) に保存
+- プロンプトで指示
+- 指示に対応する ChromaDB からベクトルを抽出しプロンプトに従い変換し出力
 
 [ノートブックはこちら 👈](https://github.com/ryo-ponsan/LangChain-tools/blob/main/langchain_research_summarize_example.ipynb)
