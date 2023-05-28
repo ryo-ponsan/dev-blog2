@@ -1,0 +1,332 @@
+---
+title: LangChainで使えるAPIについて
+date: '2023-05-29'
+tags: ['LangChain', 'chatGPT', 'OpenAI', 'API']
+draft: false
+summary: 'LangChain'
+authors: ['gypsyR']
+---
+
+- [ツール：LangChain がネイティブでサポートするさまざまなタイプのツールをカバーします。また、自分自身のツールを追加する方法もカバーします。](https://python.langchain.com/en/latest/modules/agents/tools.html)
+
+## 目次
+
+- [使用方法](#1)
+- [ツール紹介](#2)
+- [カスタムツールを定義する方法](#3)
+
+<a id="1"></a>
+
+## 使用方法
+
+LangChain のエージェントが使用できるツールについての情報がこのページに記載されています。ツールはエージェントが世界と対話するための関数で、一般的なユーティリティ（例：検索）、他のチェーン、または他のエージェントなどが含まれます。
+
+ツールは以下のスニペットでロードできます：
+
+```python
+from langchain.agents import load_tools
+tool_names = [...]
+tools = load_tools(tool_names)
+```
+
+一部のツール（例：チェーン、エージェント）は初期化するために基本的な LLM（Language Learning Model）が必要となる場合があります。その場合、LLM も引数として渡すことができます：
+
+```python
+from langchain.agents import load_tools
+tool_names = [...]
+llm = ...
+tools = load_tools(tool_names, llm=llm)
+```
+
+以下に、サポートされているすべてのツールと関連情報のリストを示します：
+
+- ツール名：LLM がツールを参照する名前。
+- ツールの説明：LLM に渡されるツールの説明。
+- メモ：LLM には渡されないツールに関するメモ。
+- LLM が必要：このツールが初期化するために LLM が必要かどうか。
+- （オプション）追加パラメータ：このツールを初期化するために必要な追加パラメータ。
+
+以下に、いくつかのツールの例を示します：
+
+- Python REPL：Python のシェル。Python のコマンドを実行するために使用します。入力は有効な Python コマンドである必要があります。出力を期待する場合は、それを出力する必要があります。
+- Search（serpapi）：検索エンジン。現在のイベントについての質問に答える必要があるときに便利です。入力は検索クエリである必要があります。
+- Wolfram Alpha：Wolfram Alpha の検索エンジン。数学、科学、技術、文化、社会、日常生活についての質問に答える必要があるときに便利です。入力は検索クエリである必要があります。
+- Requests：インターネットへのポータル。特定のサイトから特定のコンテンツを取得する必要があるときに使用します。入力は特定の URL で、出力はそのページ上のすべてのテキストになります。
+
+以上が、LangChain のエージェントが使用できるツールについての基本的な説明と実装方法です。具体的なコード例や詳細な説明については、提供されたリンクのドキュメンテーションを参照してください。
+
+その他のツールについては以下の通りです：
+
+- Terminal：ターミナルでコマンドを実行します。入力は有効なコマンドで、出力はそのコマンドを実行した結果の出力になります。
+- PAL-MATH：複雑な単語数学問題を解決するのに優れた言語モデル。入力は完全に単語化された難しい単語数学問題であるべきです。
+- PAL-COLOR-OBJ：オブジェクトの位置と色の属性についての推論が得意な言語モデル。入力は完全に単語化された難しい推論問題であるべきです。オブジェクトに関するすべての情報と答えたい最終的な質問を含めてください。
+- Calculator（llm-math）：数学に関する質問に答える必要があるときに便利です。
+- Open Meteo API：OpenMeteo API から天気情報を取得するのに便利です。入力はこの API が答えられる自然言語の質問であるべきです。
+- News API：現在のニュースのトップヘッドラインについての情報を取得したいときに使用します。入力はこの API が答えられる自然言語の質問であるべきです。
+- TMDB API：The Movie Database から情報を取得するのに便利です。入力はこの API が答えられる自然言語の質問であるべきです。
+
+これらのツールは、エージェントがより広範なタスクを実行するための強力なリソースを提供します。
+
+<a id="2"></a>
+
+## ツールリスト
+
+特徴、使用方法、無料か否かについてまとめます。
+
+以下に、LangChain のエージェントが使用できる API とその特徴、使用方法、無料で使えるかどうかをマークダウン形式でまとめます。
+
+1. **Python REPL**
+
+   - **特徴**: Python のシェル。Python のコマンドを実行するために使用します。
+   - **使用方法**: 入力は有効な Python コマンドである必要があります。出力を期待する場合は、それを出力する必要があります。
+   - **無料**: はい
+
+2. **Search (serpapi)**
+
+   - **特徴**: 検索エンジン。現在のイベントについての質問に答える必要があるときに便利です。
+   - **使用方法**: 入力は検索クエリである必要があります。
+   - **無料**: いいえ、Serp API の使用には料金が発生します。
+
+3. **Wolfram Alpha**
+
+   - **特徴**: Wolfram Alpha の検索エンジン。数学、科学、技術、文化、社会、日常生活についての質問に答える必要があるときに便利です。
+   - **使用方法**: 入力は検索クエリである必要があります。Wolfram Alpha API を呼び出し、結果を解析します。
+   - **無料**: いいえ、Wolfram Alpha API の使用には料金が発生します。
+
+4. **Requests**
+
+   - **特徴**: インターネットへのポータル。特定のサイトから特定のコンテンツを取得する必要があるときに使用します。
+   - **使用方法**: 入力は特定の URL で、出力はそのページ上のすべてのテキストになります。Python の requests モジュールを使用します。
+   - **無料**: はい
+
+5. **Terminal**
+
+   - **特徴**: ターミナルでコマンドを実行します。
+   - **使用方法**: 入力は有効なコマンドで、出力はそのコマンドを実行した結果の出力になります。subprocess を使用してコマンドを実行します。
+   - **無料**: はい
+
+6. **PAL-MATH**
+
+   - **特徴**: 複雑な単語数学問題を解決するのに優れた言語モデル。
+   - **使用方法**: 入力は完全に単語化された難しい単語数学問題であるべきです。
+   - **無料**: はい
+
+7. **PAL-COLOR-OBJ**
+
+   - **特徴**: オブジェクトの位置と色の属性についての推論が得意な言語モデル。
+   - **使用方法**: 入力は完全に単語化された難しい推論問題であるべきです。オブジェクトに関するすべての情報と答えたい最終的な質問を含めてください。 - **無料**: はい
+
+8. **Calculator (llm-math)**
+
+   - **特徴**: 数学に関する質問に答える必要があるときに便利です。
+   - **使用方法**: 入力は数学的な問題または計算であるべきです。
+   - **無料**: はい
+
+9. **Open Meteo API**
+
+   - **特徴**: OpenMeteo API から天気情報を取得するのに便利です。
+   - **使用方法**: 入力はこの API が答えられる自然言語の質問であるべきです。Open Meteo API https://api.open-meteo.com/ の `/v1/forecast` エンドポイントに接続します。
+   - **無料**: いいえ、OpenMeteo API の使用には料金が発生します。
+
+10. **News API**
+
+    - **特徴**: 現在のニュースのトップヘッドラインについての情報を取得したいときに使用します。
+    - **使用方法**: 入力はこの API が答えられる自然言語の質問であるべきです。News API https://newsapi.org の`/v2/top-headlines`エンドポイントに接続します。
+    - **無料**: いいえ、News API の使用には料金が発生します。
+
+11. **TMDB API**
+    - **特徴**: The Movie Database から情報を取得するのに便利です。
+    - **使用方法**: 入力はこの API が答えられる自然言語の質問であるべきです。TMDB API https://api.themoviedb.org/3 の`/search/movie`エンドポイントに接続します。
+    - **無料**: いいえ、TMDB API の使用には料金が発生します。
+
+以上が、LangChain のエージェントが使用できる API とその特徴、使用方法、無料で使えるかどうかについてのリストです。具体的なコード例や詳細な説明については、提供されたリンクのドキュメンテーションを参照してください。
+
+<a id="3"></a>
+
+## カスタムツールを定義する方法
+
+以下に、LangChain のエージェントでカスタムツールを定義し、使用する方法をステップバイステップで説明します。
+
+## 1. 必要なモジュールのインポート
+
+まず、必要なモジュールをインポートします。これには、LangChain のエージェントとツール、LLMMathChain、SerpAPIWrapper などが含まれます。
+
+```python
+from langchain import LLMMathChain, SerpAPIWrapper
+from langchain.agents import AgentType, initialize_agent
+from langchain.chat_models import ChatOpenAI
+from langchain.tools import BaseTool, StructuredTool, Tool, tool
+```
+
+## 2. LLM の初期化
+
+次に、エージェントで使用する LLM を初期化します。
+
+```python
+llm = ChatOpenAI(temperature=0)
+```
+
+## 3. 完全に新しいツールの定義 - 文字列入力と出力
+
+最も単純なツールは、単一のクエリ文字列を受け入れて文字列出力を返します。ツール関数が複数の引数を必要とする場合は、StructuredTool セクションにスキップすることができます。
+
+### 3.1. Tool dataclass
+
+`Tool` dataclass は、単一の文字列入力を受け入れて文字列出力を返す関数をラップします。
+
+```python
+search = SerpAPIWrapper()
+llm_math_chain = LLMMathChain(llm=llm, verbose=True)
+tools = [
+    Tool.from_function(
+        func=search.run,
+        name = "Search",
+        description="useful for when you need to answer questions about current events"
+        # coroutine= ... <- you can specify an async method if desired as well
+    ),
+]
+```
+
+また、より多くの情報を提供するためにカスタム`args_schema`を定義することもできます。
+
+```python
+from pydantic import BaseModel, Field
+
+class CalculatorInput(BaseModel):
+    question: str = Field()
+
+tools.append(
+    Tool.from_function(
+        func=llm_math_chain.run,
+        name="Calculator",
+        description="useful for when you need to answer questions about math",
+        args_schema=CalculatorInput
+        # coroutine= ... <- you can specify an async method if desired as well
+    )
+)
+```
+
+### 3.2. BaseTool class のサブクラス化
+
+BaseTool クラスを直接サブクラス化することもできます。これは、インスタンス変数の制御をより強くしたい場合や、ネストされたチェーンや他のツールへのコールバックを伝播させたい場合に便利です。
+
+```python
+from typing import Optional, Type
+from langchain.callbacks.manager import AsyncCallbackManagerForToolRun, CallbackManagerForToolRun
+
+class CustomSearchTool(BaseTool):
+    name = "custom_search"
+    description = "useful for when you need to answer questions about current events"
+
+    def _run(self, query: str, run_manager: Optional[CallbackManagerForToolRun] =None) -> str:
+            """Use the tool."""
+            return search.run(query)
+
+        async def _arun(self, query: str, run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> str:
+            """Use the tool asynchronously."""
+            raise NotImplementedError("custom_search does not support async")
+
+class CustomCalculatorTool(BaseTool):
+    name = "Calculator"
+    description = "useful for when you need to answer questions about math"
+    args_schema: Type[BaseModel] = CalculatorInput
+
+    def _run(self, query: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
+        """Use the tool."""
+        return llm_math_chain.run(query)
+
+    async def _arun(self, query: str,  run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> str:
+        """Use the tool asynchronously."""
+        raise NotImplementedError("Calculator does not support async")
+
+tools = [CustomSearchTool(), CustomCalculatorTool()]
+agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
+```
+
+## 4. ツールデコレータの使用
+
+カスタムツールを定義するために、@tool デコレータが提供されています。このデコレータは、単純な関数からツールを素早く作成するために使用できます。デコレータはデフォルトで関数名をツール名として使用しますが、最初の引数として文字列を渡すことでこれを上書きできます。また、デコレータは関数の docstring をツールの説明として使用します。
+
+```python
+from langchain.tools import tool
+
+@tool
+def search_api(query: str) -> str:
+    """Searches the API for the query."""
+    return f"Results for query {query}"
+```
+
+## 5. カスタム構造化ツール
+
+関数がより構造化された引数を必要とする場合、StructuredTool クラスを直接使用するか、BaseTool クラスをサブクラス化することができます。
+
+### 5.1. StructuredTool dataclass
+
+与えられた関数から構造化ツールを動的に生成する最も早い方法は、StructuredTool.from_function()を使用することです。
+
+```python
+import requests
+from langchain.tools import StructuredTool
+
+def post_message(url: str, body: dict, parameters: Optional[dict] = None) -> str:
+    """Sends a POST request to the given url with the given body and parameters."""
+    result = requests.post(url, json=body, params=parameters)
+    return f"Status: {result.status_code} - {result.text}"
+
+tool = StructuredTool.from_function(post_message)
+```
+
+### 5.2. BaseTool のサブクラス化
+
+BaseTool は\_run メソッドのシグネチャからスキーマを自動的に推測します。
+
+```
+from typing import Optional, Type
+from langchain.callbacks.manager import AsyncCallbackManagerForToolRun, CallbackManagerForToolRun
+
+class CustomSearchTool(BaseTool):
+    name = "custom_search"
+    description = "useful
+
+    for when you need to answer questions about current events"
+
+        def _run(self, query: str, engine: str = "google", gl: str = "us", hl: str = "en", run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
+            """Use the tool."""
+            search_wrapper = SerpAPIWrapper(params={"engine": engine, "gl": gl, "hl": hl})
+            return search_wrapper.run(query)
+
+        async def _arun(self, query: str,  engine: str = "google", gl: str = "us", hl: str = "en", run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> str:
+            """Use the tool asynchronously."""
+            raise NotImplementedError("custom_search does not support async")
+```
+
+## 6. ツールデコレータの使用
+
+ツールデコレータは、シグネチャに複数の引数がある場合、自動的に構造化ツールを作成します。
+
+```python
+import requests
+from langchain.tools import tool
+
+@tool
+def post_message(url: str, body: dict, parameters: Optional[dict] = None) -> str:
+    """Sends a POST request to the given url with the given body and parameters."""
+    result = requests.post(url, json=body, params=parameters)
+    return f"Status: {result.status_code} - {result.text}"
+```
+
+## 7. 既存のツールの修正
+
+既存のツールをロードして直接修正する方法を示します。以下の例では、Search ツールの名前を Google Search に変更します。
+
+```python
+from langchain.agents import load_tools
+
+tools = load_tools(["serpapi", "llm-math"], llm=llm)
+
+tools[0].name = "Google Search"
+
+agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
+```
+
+以上が、LangChain のエージェントでカスタムツールを定義し、使用する方法のステップバイステップの説明です。これらのステップを参考に、自分のニーズに合わせてカスタムツールを作成し、LangChain エージェントで使用することができます。
