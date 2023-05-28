@@ -1,5 +1,5 @@
 ---
-title: 【備忘録】git pushでタイムアウト
+title: 【備忘録】git pushでタイムアウト等
 date: '2023-05-28'
 tags: ['GitHub']
 draft: false
@@ -40,3 +40,32 @@ Everything up-to-date
 4. リモートリポジトリのサーバーが一時的に問題を抱えている場合があります。サーバーの問題が解決されるのを待ってから、再度`git push`を試してください。
 
 これらの解決策のいずれかが問題を解決しない場合は、リモートリポジトリのホスティングプロバイダーに問い合わせて、サポートを求めることを検討してください。
+
+# PAT 設定方法
+
+次の手順に従って、GitHub のアクセストークン（PAT）をターミナルに設定できます。
+
+1. GitHub の Web サイトにアクセスし、右上のプロフィールアイコンをクリックします。
+2. ドロップダウンメニューから「Settings」を選択します。
+3. 左側のメニューから「Developer settings」を選択し、「Personal access tokens」をクリックします。
+4. 「Generate new token」をクリックして、必要なアクセス許可を設定します。必要なアクセス許可が不明な場合は、GitHub のドキュメントを確認してください。
+5. 「Generate token」をクリックして、新しいトークンを作成します。
+6. トークンが作成されたら、コピーして、ターミナルで次のコマンドを入力してください。
+
+```
+git config --global credential.helper store
+```
+
+これにより、Git が認証情報を保存するための方法を指定します。
+
+7. 次に、次のコマンドを入力して、新しいトークンを使用して認証情報を追加します。
+
+```
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"
+git config --global user.password "TOKEN"
+```
+
+上記の「TOKEN」には、コピーしたアクセストークンをペーストしてください。
+
+これで、GitHub アカウントの認証情報がターミナルに設定され、Git コマンドを使用してリポジトリにアクセスできるようになります。
