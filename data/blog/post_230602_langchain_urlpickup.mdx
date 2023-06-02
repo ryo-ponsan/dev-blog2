@@ -1,0 +1,94 @@
+---
+title: arXivに新規投稿された特定ジャンルの学術論文のURLを取得
+date: '2023-06-02'
+tags: ['LangChain', 'chatGPT', 'OpenAI', 'API']
+draft: false
+summary: 'LangChain'
+authors: ['gypsyR']
+---
+
+# コンセプト
+
+業務内で、ロボットのモーションプランニングや点群深層学習を扱っており、日々のキャッチアップが要求されるが、なかなかに工数もかかりしんどく、自動化して見たい論文だけを自動的に読める世界が来い。
+
+# 目次
+
+- arxiv の論文が追加されたらアラート
+- 論文の URL を取得する（作成中）
+- LangChain の Tools で読込（作成中）
+
+# 「点群処理」「Motion Pranning」に関する論文が追加されたらアラート
+
+arXiv の RSS フィードから新しい投稿をチェックし、特定のキーワード（ここでは「点群処理」または「Motion Planning」）が含まれている場合に通知を行う。  
+メールサーバーに適した設定に書き換え実行し、定期的に新しい投稿をチェックするには、cron ジョブやタスクスケジューラを利用すること。  
+尚、パスワードの管理方法には厳重に気を付けること。
+
+## 追加したいこと
+
+- 見つからなかった場合の処理
+
+```python
+import feedparser
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+# arXivのRSSフィードURL
+url = "https://export.arxiv.org/rss/cs.CV"
+
+# 電子メールの設定
+smtp_server = "smtp.yourserver.com"
+smtp_port = 587
+from_email = "your-email@example.com"
+to_email = "recipient-email@example.com"
+password = "your-email-password"
+
+# 検索するキーワード
+keywords = ['点群処理', 'Motion Planning']
+
+def check_feed(url, keywords):
+    feed = feedparser.parse(url)
+    for entry in feed.entries:
+        for keyword in keywords:
+            if keyword.lower() in entry.summary.lower():
+                send_email(entry.link, entry.title, keyword)
+
+def send_email(link, title, keyword):
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = "New arXiv Paper related to {}".format(keyword)
+
+    body = "A new paper related to {} has been published on arXiv. \n\nTitle: {}\nLink: {}".format(keyword, title, link)
+    msg.attach(MIMEText(body, 'plain'))
+
+    server = smtplib.SMTP(smtp_server, smtp_port)
+    server.starttls()
+    server.login(from_email, password)
+    text = msg.as_string()
+    server.sendmail(from_email, to_email, text)
+    server.quit()
+
+if __name__ == "__main__":
+    check_feed(url, keywords)
+
+```
+
+# 取得した論文のＵＲＬ情報に対し、要約
+
+別記事参照
+
+## 前提知識 LangChain, Qdrant, llama-index, OpenAI
+
+- LangChain
+  - LLM との連携をする上でとても使いやすいので使用しています。今後 OpenAI の LLM 以外の LLM を使う際も簡単に切り替えられるようになっていくと思っているのでその点でも採用しています。
+- Qdrant
+  - ベクトル検索とベクトルデータベースが使いやすいのと LangChain からも使えるので採用しました。
+- llama-index
+  - LangChain の URL tool がうまく実行できなかったため URL からの情報の取得には llama-index を使いました．
+- OpenAI
+  - OpenAI の LLM を利用するため使っています。
+
+### [参考「ChatGPT と LangChain で便利な検索ツールを作る」](https://qiita.com/fuyu_quant/items/098a3aeb3c5ae5b290cd)
+
+- ChatGPT を使った検索や内容の解説をさせたりする際に参考
