@@ -1,0 +1,341 @@
+---
+title: 大量のテキストデータをchatGPTに投げるまでの最適解を見つける
+date: '2023-06-30'
+tags: ['LangChain', 'chatGPT', 'OpenAI', 'API']
+draft: false
+summary: 'LangChain'
+authors: ['gypsyR']
+---
+
+## 目次
+
+- [vectordatabase 用いた案 1](#1)
+- [Qdrant 用いた案 2](#2)
+- [ChromaDB 用いた案 3](#3)
+
+<a id="1"></a>
+
+# 案１
+
+URL のみの対応?
+urlvectorsearch を使用  
+**url 以外の使い方を調査!!**
+
+### 1.import
+
+```
+%%capture
+!pip install git+https://github.com/fuyu-quant/url-vector-search.git
+```
+
+```
+%%capture
+!pip install langchain==0.0.153
+!pip install llama-index==0.5.27
+!pip install openai==0.27.5
+!pip install qdrant-client==1.1.6
+```
+
+```python
+
+# urlvectorsearch以外を調べる！！
+from urlvectorsearch import vectordatabase
+from urlvectorsearch import output
+
+import os
+
+# os.environ["OPENAI_API_KEY"] = "YOUR_API_KEY"
+
+```
+
+### 2.ベクトルデータベースの作成
+
+まずは検索対象となるベクトルデータベースの作成する。  
+尚、データベース作成時、データが多いほど時間がかかる。  
+3 分程度は見たほうがいい。どちらかというと社内データベースであったり、  
+大量のデータを読み込ませてから、それを基に chatGPT に返答してもらいたい際に有用。  
+したがって、リアルタイムでユーザにデータの入力させ、要約するといったアプリには  
+あまり向いてないと考える（待機時間前提のアプリなら可能性あり）
+
+```python
+# メモリに保存する場合
+database = vectordatabase.create_vectordatabase()
+# ファイルに保存する場合
+# 好きなパスを指定してください
+path = '/content/qdrant'
+database = vectordatabase.create_vectordatabase(path = path)
+
+```
+
+リンク先のテキストをデータベースに保存
+
+```python
+urls = [
+    "https://www.brainpad.co.jp/doors/knowledge/01_dx_natural_language_processing_1/",
+    "https://www.brainpad.co.jp/doors/knowledge/01_quantitative_evaluation_year_2024_problem/",
+    "https://www.brainpad.co.jp/doors/news_trend/logistics_industry_year_2024_problem/",
+]
+vectordatabase.add_text(urls, database)
+```
+
+### 3.ベクトルデータベースから情報抽出
+
+検索`query`の内容と類似している内容を抽出し、元となるリンクと、スコアを付与して出力します。  
+各 URL に対して実行します。
+
+```python
+query = "機械学習の取り組みについて"
+# num_outputは登録したリンク先の数より小さく数にしてください
+output1 = output.description_output_with_scoer(database, query, num_output=3)
+
+print(output1['description0'])
+print(output1['url0'])
+print(output1['score0'])
+print(output1['description1'])
+print(output1['url1'])
+print(output1['score1'])
+```
+
+### 4.抽出したデータに対し、要約や体裁を整える処理をかける
+
+llama-index や LangChain で処理。詳細省略。
+
+---
+
+<a id="2"></a>
+
+## 案 2
+
+ベクトルデータベースに Qdrant、LLM の連携に LangChain  
+URL 取得には、
+
+### 1.URL から情報取得（←Text データを document 形式にする方法調査！！）
+
+llama_index の機能を使い URL を渡し，テキスト情報の抽出
+
+```python
+from llama_index.readers import BeautifulSoupWebReader
+
+urls = [
+    "https://www.brainpad.co.jp/doors/knowledge/01_dx_natural_language_processing_1/",
+    "https://www.brainpad.co.jp/doors/knowledge/01_quantitative_evaluation_year_2024_problem/"
+]
+
+documents = BeautifulSoupWebReader().load_data(urls=urls)
+
+# 1つ目のリンクに関する情報
+documents[0].text
+
+```
+
+### 2.【適宜】大量のテキストデータの要約
+
+- 検索クエリに対し、内容を反映した出力生成時に、テキストデータが長いと LLM に入力できない
+- 検索語にヒットしたものを要約するようにすると最終的な出力生成に時間がかかる
+- テキストデータが長くない、または時間はかけて良いし正確な出力が欲しい場合は省略！
+
+  ```python
+  from langchain.text_splitter import CharacterTextSplitter
+  from langchain.docstore.document import Document
+
+  # text = "機械学習プロジェクトを推進するにあたって大切なこと～ DX 推進時...."
+
+  # text = documents[0].text
+
+  # 複数の URL を読み込んでいる場合、それぞれの URL から得られる Document の text を連結
+
+  text = "".join([doc.text for doc in documents])
+
+  # 1000 文字ごとに'\n\n'を挿入する
+
+  chunks = [text[i:i+1000] for i in range(0, len(text), 1000)]
+  result = '\n\n'.join(chunks)
+
+  # '\n\n'で文字列を分割し一つのチャンクとする
+
+  text_splitter = CharacterTextSplitter(
+  separator = "\n\n", # 文章を分割する文字列
+  chunk_size = 1000, # チャンクの文字数
+  chunk_overlap = 0, # チャンク間で重複させる文字数
+  )
+
+  # 分割した文字列を LLM に入力するデータ形式に変換する
+
+  split_texts = text_splitter.split_text(result)
+  split_docs = [Document(page_content=t) for t in split_texts]
+
+  ```
+
+  またここでは map_reduce という方法を使用し、二段階に分けて要約を行うのでそれぞれの段階でのプロンプトを作成
+
+  ```python
+  from langchain import PromptTemplate
+
+  template1 = """
+  次の文章を日本語で500文字程度に要約してください．
+  文章：{text}
+  """
+
+  template2 = """
+  次の文章を日本語で1200文字程度に要約してください．
+  文章：{text}
+  """
+
+  prompt1 = PromptTemplate(
+      input_variables = ['text'],
+      template = template1,
+  )
+
+  prompt2 = PromptTemplate(
+      input_variables = ['text'],
+      template = template2,
+  )
+
+  ```
+
+  要約を実行し、大量のテキストを短くしておく
+
+  ```python
+
+  from langchain.chains.summarize import load_summarize_chain
+  from langchain.llms import OpenAI
+
+  llm = OpenAI(temperature=0, max_tokens = 1200)
+
+  chain = load_summarize_chain(
+      llm = llm,
+      chain_type="map_reduce",
+      # それぞれの要約を行うときのテンプレ
+      map_prompt = prompt1,
+      # 要約文の要約文を作るときのテンプレ
+      combine_prompt = prompt2
+      )
+
+  summary = chain.run(split_docs)
+
+  summary
+  ```
+
+### 3.Qdrant を用いた検索データベースの作成(text を document 型にするには)
+
+Qdrant を使った検索対象の文章を保存するためのベクトルデータベース作成 Qdrant の特徴
+
+- 外部 API を使わなくてもベクトルデータベースを作成できる
+- さまざまな保存場所を選ぶ事ができる
+- LangChain で実装できる
+
+```python
+# Qdrantのベクトルデータベースの作成
+
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.vectorstores import Qdrant
+from langchain.schema import Document
+
+embeddings = OpenAIEmbeddings()
+
+from llama_index.readers import BeautifulSoupWebReader
+
+urls = [
+    "https://tech-deliberate-jiro.com/pointcloud-deeplearning/#",
+    "https://qiita.com/KYoshiyama/items/802506ec397559725a1c"
+]
+
+# documents = BeautifulSoupWebReader().load_data(urls=urls)
+documents = BeautifulSoupWebReader().load_data(urls=urls)
+text = documents[0].text
+
+# サンプルのデータ
+# sample = [Document(page_content="sample", metadata={"url": "https://tech-deliberate-jiro.com/pointcloud-deeplearning/#" })]
+sample = [Document(page_content=text, metadata={"url": "https://tech-deliberate-jiro.com/pointcloud-deeplearning/#" })]
+# ベクターインデックスを作成する
+qdrant = Qdrant.from_documents(sample, embeddings, location=":memory:", collection_name= "my_documents")
+```
+
+#### LLM 入力用、Document 型について
+
+`documents` リストに含まれる各 `Document` オブジェクトは、以下の属性を持っています：
+
+- `text`: 文書の本文。ここにはスクレイピングしたウェブページのテキスト情報が格納されています。
+
+- `doc_id`: 文書の一意の識別子。これは各文書を一意に識別するための情報です。
+
+- `embedding`: 文書のベクトル表現。これは文書の意味を表す数値的な表現で、自然言語処理のタスク（たとえばテキスト分類や文書間の類似度計算など）でしばしば使用されます。このフィールドが `None` になっている場合、ベクトル表現がまだ計算されていないことを示しています。
+
+- `doc_hash`: 文書のハッシュ値。これは文書の内容を一意に表す情報で、文書の重複を避けるために使用されることがあります。
+
+- `extra_info`: 文書に関連する追加の情報を保持するためのフィールド。ここには、たとえばスクレイピングしたウェブページの URL などが含まれることがあります。
+
+以上が、`Document` オブジェクトの主な属性です。それぞれの属性は、文書を表現し、操作し、管理するための重要な情報を提供します。
+
+```python
+# 1つ目のリンクに関する情報
+documents[0]
+documents[0].text
+documents[0].doc_id
+documents[0].embedding
+documents[0].doc_hash
+documents[0].extra_info
+
+# 複数のドキュメントのtextを連結する場合
+text = "".join([doc.text for doc in documents])
+```
+
+### 4.データをさらに追加するには
+
+これで二つ以上のドキュメントから検索して、よりスコアが高いものを採用するなどの処理に使用可能
+
+```python
+text2 = documents[1].text
+
+# textをLangChainで扱えるようにデータ形式を変換する
+# metadataの登録はしてもしなくても良い
+docs = [Document(page_content=text2, metadata={"url": "https://www.brainpad.co.jp/doors/knowledge/01_data_governance_9_1/" })]
+
+qdrant.add_documents(docs, collection_name="my_documents")
+```
+
+### 5. データベースからの検索
+
+上記の方法で作成したベクトルデータベースに対して検索を行います．検索方法にはスコア付きの出力を得るものや [MMR](https://yolo-kiyoshi.com/2020/05/08/post-1781/#outline__2) という類似度の高さ以外に取得するデータの多様性を高める方法などがある
+
+#### 5-1
+
+```python
+query = "点群深層学習とは"
+
+# 類似度スコア付きの出力
+# 類似度スコアが高いものから順番に取得してきます
+found_docs = qdrant.similarity_search_with_score(query)
+document, score = found_docs[0]
+print(document.page_content)
+print(f"\nScore: {score}")
+```
+
+#### 5-2
+
+```python
+
+# スコアなしの出力
+# 類似度が高いものから順番に取得してきます
+found_docs = qdrant.similarity_search(query)
+print(found_docs[0].page_content)
+```
+
+#### 5-3. MMR
+
+```python
+# MMR(Maximal Marginal Relevance)
+# 類似度が高いものを取得したいがなるべく多様な結果も取得したいときに使う
+found_docs = qdrant.max_marginal_relevance_search(query, k=2, fetch_k=10)
+print(found_docs[0].page_content)
+```
+
+### 6. 出力されたテキストに対し処理
+
+llama-index や LangChain で処理。詳細省略。
+
+---
+
+<a id="3"></a>
+
+## 案 3 chromaDB(調査中)
