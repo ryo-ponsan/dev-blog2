@@ -1,0 +1,150 @@
+---
+title: Firebase Functions用いpythonの機能をAPIとして公開
+date: '2023-07-16'
+tags: ['computer science']
+draft: false
+summary: 'gptapp 開発備忘録'
+authors: ['gypsyR']
+---
+
+## 目次
+
+1. [python と ChatGPT API を使い、youtube 動画を変換](#1)
+2. [Flask を使って API 化](#2)
+3. [Python の API を Heroku にデプロイ](#3)
+4. [Next.js でフロントエンドの開発](#4)
+5. [アプリケーションのテストとデプロイ](#5)
+
+<a id="1"></a>
+## 1.python と ChatGPT API を使い、youtube 動画を変換
+
+詳細は別途記述
+
+<a id="2"></a>
+## 2.Firebase Functions を用いて Python の機能を API として公開
+
+~~[Firebase Functions](https://firebase.google.com/docs/functions?hl=ja) を使って、上記の Python スクリプトを API として公開します。Firebase Functions では、Cloud Functions for Firebase を使ってバックエンドサービスを構築します。公式ドキュメントは[以下のリンク](https://firebase.google.com/docs/functions?hl=ja)から確認できます。 ここでは、Python ランタイムを使って Firebase Function を作成します。このステップでは、Python で書かれたテキスト要約機能を API として公開します。~~
+
+### Flask
+
+Flask アプリケーションは POST リクエストを受け取り、そのリクエストの JSON ボディから prompt を取り出して OpenAI の API を呼び出し、生成されたテキストを JSON として返します
+
+```python
+from flask import Flask, request, jsonify
+import openai
+
+openai.api_key = 'your-openai-key'
+
+app = Flask(__name__)
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    prompt = request.json['prompt']
+    response = openai.Completion.create(engine="text-davinci-002", prompt=prompt, max_tokens=100)
+    generated_text = response.choices[0].text.strip()
+    return jsonify({'generated_text': generated_text})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
+
+```
+
+<a id="3"></a>
+
+## 3.Python の API を Heroku にデプロイ
+
+まず Python のスクリプトを Web API として公開し、その API を Next.js アプリケーションから呼び出す方法を説明します。このプロセスは主に 4 つのステップに分けられます。
+
+**1. Python のスクリプトを Flask を使って API 化**
+
+Flask は Python で Web アプリケーションを構築するための軽量なフレームワークです。Flask を使って Python のスクリプトを Web API として公開することができます。
+
+あなたのスクリプトが ChatGPT API を使ってテキストを生成すると仮定して、以下のような Flask アプリケーションを作ることができます。
+
+```python
+from flask import Flask, request, jsonify
+import openai
+
+openai.api_key = 'your-openai-key'
+
+app = Flask(__name__)
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    prompt = request.json['prompt']
+    response = openai.Completion.create(engine="text-davinci-002", prompt=prompt, max_tokens=100)
+    generated_text = response.choices[0].text.strip()
+    return jsonify({'generated_text': generated_text})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
+```
+
+この Flask アプリケーションは POST リクエストを受け取り、そのリクエストの JSON ボディから`prompt`を取り出して OpenAI の API を呼び出し、生成されたテキストを JSON として返します。
+
+**2. Python の API を Heroku にデプロイ**
+
+Heroku はアプリケーションをホストするためのクラウドプラットフォームで、Python のアプリケーションを簡単にデプロイすることができます。
+
+1. Heroku のアカウントを作成します。
+2. Heroku CLI をインストールし、ターミナルから Heroku にログインします。
+3. Heroku で新しいアプリケーションを作成します。
+4. Flask アプリケーションに`Procfile`と`requirements.txt`を追加します。
+   - `Procfile`は Heroku がアプリケーションを起動する方法を知るためのファイルで、以下のようになります: `web: gunicorn app:app`
+   - `requirements.txt`はアプリケーションが依存している Python パッケージのリストで、少なくとも`flask`と`openai`を含む必要があります。
+5. アプリケーションを Git リポジトリにコミットし、Heroku にプッシュします。
+
+デプロイが成功すると、あなたの API は Heroku の URL(例：`https://<your-app-name>.herokuapp.com/`)でアクセス可能になります。
+
+<a id="4"></a>
+
+## 4.Next.js でフロントエンドの開発
+
+[Next.js](https://nextjs.org/docs)を用いてフロントエンドの開発を行います。このステップでは、UI を作成し、Firebase Function で公開した API を呼び出す機能を実装
+
+**3. Next.js アプリケーションの作成**
+
+Next.js は React のフレームワークで、サーバーサイドレンダリングや静的サイト生成などをサポートしています。Next.js を使ってアプリケーションを作成し、先ほど公開した API を呼び出します。
+
+1. Next.js のアプリケーションを作成します: `npx create-next-app@latest <your-app-name>`
+2. API を呼び出すページを作成します。`pages`ディレクトリに新しい JSX ファイルを作成し、その中で`fetch`または`axios`などを使用して API を呼び出します。
+
+```jsx
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+
+const YourComponent = () => {
+  const [generatedText, setGeneratedText] = useState('')
+
+  useEffect(() => {
+    const generateText = async () => {
+      const response = await axios.post('https://<your-app-name>.herokuapp.com/generate', {
+        prompt: 'Your prompt.',
+      })
+      setGeneratedText(response.data.generated_text)
+    }
+
+    generateText()
+  }, [])
+
+  return <div>{generatedText}</div>
+}
+
+export default YourComponent
+```
+
+**4. Next.js アプリケーションを Vercel にデプロイ**
+
+Vercel は Next.js のアプリケーションを簡単にデプロイすることができるプラットフォームです。
+
+1. Vercel のアカウントを作成します。
+2. Vercel CLI をインストールします。
+3. ターミナルから`vercel`を実行して Next.js アプリケーションをデプロイします。
+
+これらのステップを完了すると、Python で書かれたスクリプトを Next.js アプリケーションから呼び出すことができる Web API として公開できます。
+
+<a id="5"></a>
+
+## 5.アプリケーションのテストとデプロイ
+
+Firebase Hosting を使用すると、Next.js で作成したフロントエンドを容易にデプロイすることができます。また、Firebase Functions を用いたバックエンドも同時にデプロイされます。
