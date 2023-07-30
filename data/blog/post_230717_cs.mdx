@@ -1,0 +1,50 @@
+---
+title: cs備忘録1
+date: '2023-06-09'
+tags: ['computer science']
+draft: false
+summary: '連結リストまとめ'
+authors: ['gypsyR']
+---
+
+## 目次
+
+## 1.片方向リスト
+
+- 連結リストは次のノードの参照を示すポインタを持つという単純なデータ構造で動的にサイズ変更可能
+- 連結リストはポインタによって構成、ノード x が与えられた場合、O(1)でリストに要素を挿入可能
+- ノード A に対し、ノード B を挿入するとき、A のポインタを変数 T に格納し、A のポインタを B に変更、最後に B のポインタを T に変更すればいい
+
+```java
+class SinglyLinkedListNode<E>{
+    public E data;
+    public SinglyLinkedListNode<E> next;
+
+    public SinglyLinkedListNode(E data){
+        this.data = data;
+        this.next = null;
+    }
+
+    public void addNode(SinglyLinkedListNode<E> node){
+        SinglyLinkedListNode temp = this.next;
+        this.next = node;
+        node.next = temp;
+    }
+}
+
+class Solution{
+    public static SinglyLinkedListNode<Integer> doubleEvenNumber(SinglyLinkedListNode<Integer> head){
+        int count = 0;
+        SinglyLinkedListNode<Integer> iterator = head;
+        while(iterator != null){
+            SinglyLinkedListNode<Integer> currentNode = iterator;
+            iterator = iterator.next;
+            if ( count%2 == 0){
+                currentNode.addNode(new SinglyLinkedListNode<Integer>(currentNode.data * 2));
+            }
+            count++;
+        }
+        return head;
+    }
+}
+```
