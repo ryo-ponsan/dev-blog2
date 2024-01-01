@@ -1,0 +1,255 @@
+---
+title: vastai CLI
+date: '2023-09-16'
+tags: ['vastai', 'stable Diffusion']
+draft: false
+summary: 'stable diffusion'
+authors: ['gypsyR']
+---
+
+# vastai
+
+stable diffusion 環境を構築するため、vast ai を使おうと思った。しかし、誤ってホストアカウントを作成し$10 入金した。  
+client アカウントを作成し直し、host から送金したいが、CUI 限定で可能な処理とのこと。
+
+## 目次
+
+Linux(wsl)で vast ai cli を使える環境を 1 から作る
+
+- pyenv 環境構築
+- vast ai cli 環境構築と操作
+
+## 1.pyenv 環境構築
+
+```
+sudo apt update
+sudo apt install -y build-essential libssl-dev zlib1g-dev libbz2-dev \
+libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
+xz-utils tk-dev libffi-dev liblzma-dev python3-openssl git
+
+curl https://pyenv.run | bash
+
+```
+
+```
+code ~/.bashrc
+```
+
+下記を設定ファイルに追記しパスを通す
+
+```
+export PATH="$HOME/.pyenv/bin:$PATH"
+eval "$(pyenv init --path)"
+eval "$(pyenv virtualenv-init -)"
+
+```
+
+```
+source ~/.bashrc
+
+```
+
+python をインストール
+
+```
+pyenv install --list
+
+pyenv install 3.11.5
+python --version
+
+```
+
+## 2.[vast cli](https://vast.ai/docs/cli/commands) 環境構築
+
+```
+pip install --upgrade vastai;
+```
+
+API key set
+
+```
+usage: ./vast set api-key APIKEY
+```
+
+他アカウントに送金
+以下は、Vast AI の CLI を使用して他のユーザーにクレジットを送金する方法のステップバイステップのガイドです。
+
+### クレジットの送金方法
+
+1. **コマンドの概要**:
+
+   ```
+   usage: ./vast transfer credit RECIPIENT AMOUNT
+   ```
+
+   - `RECIPIENT`: 受信者のメールアドレス
+   - `AMOUNT`: 送金するクレジットの金額（ドル）
+
+2. **オプション**:
+
+   - `-h, --help`: ヘルプメッセージを表示して終了します。
+   - `--url URL`: サーバーの REST API の URL。
+   - `--raw`: 機械可読の JSON を出力します。
+   - `--explain`: CLI の呼び出しと HTTPS API エンドポイントのマッピングの詳細な説明を出力します。
+   - `--api-key API_KEY`: API キー。デフォルトでは`~/.vast_api_key`に保存されているものを使用します。
+
+3. **実行例**:
+   例えば、`john.doe@example.com`に$50 を送金したい場合、以下のコマンドを実行します。
+   ```
+   ./vast transfer credit john.doe@example.com 50
+   ```
+
+このコマンドを実行すると、指定した金額のクレジットが受信者のアカウントに送金されます。
+
+注意: この操作を行う前に、適切な API キーを設定していることを確認してください。また、送金する前に十分なクレジットがあることを確認してください。
+
+送金しようとすると下記聞かれるので Y を入力
+
+```
+Transfer $10.05 credit to account RECIPIENT?  This is irreversible.
+Continue? [y/n]
+You lack the credit balance to perform that operation
+```
+
+実行された。
+
+```
+Sent 10.04 to RECIPIENT
+```
+
+失敗すると下記になる
+
+```
+You lack the credit balance to perform that operation
+```
+
+送金コスト$0.05 かかるのでそれを踏まえた額を送金すること
+
+## vast cli コマンド集
+
+以下は、Vast AI の CLI コマンドのリファレンスから読み取った情報のまとめです。
+
+### 1. 一般的な CLI コマンド
+
+| コマンド            | 概要                                                   | 実行例                                                        |
+| ------------------- | ------------------------------------------------------ | ------------------------------------------------------------- |
+| `vast.py`           | CLI の基本的な操作                                     | `vast.py --help`                                              |
+| `change bid`        | スポット/中断可能インスタンスの入札価格を変更          | -                                                             |
+| `copy`              | インスタンス間やローカル間でディレクトリをコピー       | `vast copy 6003036:/workspace/ 6003038:/workspace/`           |
+| `cancel copy`       | 進行中のリモートコピーをキャンセル                     | `vast cancel copy 12371`                                      |
+| `create instance`   | 新しいインスタンスを作成                               | `vast create instance 384827 --image bobsrepo/pytorch:latest` |
+| `create subaccount` | サブアカウントを作成                                   | `./vast create subaccount --email EMAIL --username USERNAME`  |
+| `destroy instance`  | インスタンスを破壊（データも削除）                     | `./vast destroy instance id`                                  |
+| `execute`           | マシン上でリモートコマンドを実行                       | `./vast execute 99999 'ls -l -o -r'`                          |
+| `label instance`    | インスタンスに文字列ラベルを割り当てる                 | `./vast label instance <id> <label>`                          |
+| `logs`              | インスタンスのログを取得                               | `./vast logs INSTANCE_ID`                                     |
+| `prepay instance`   | 予約されたインスタンスにクレジットを入金               | `./vast prepay instance <id> <amount>`                        |
+| `reboot instance`   | インスタンスを再起動（停止/開始）                      | `./vast reboot instance <id>`                                 |
+| `reset api-key`     | API キーをリセット（新しいキーをウェブサイトから取得） | `./vast reset api-key`                                        |
+| `set api-key`       | API キーを設定                                         | `./vast set api-key APIKEY`                                   |
+| `show earnings`     | マシンの収益履歴レポートを取得                         | `./vast show earnings`                                        |
+| `show instances`    | ユーザーの現在のインスタンスを表示                     | `./vast show instances`                                       |
+| `show invoices`     | 請求履歴レポートを取得                                 | `./vast show invoices`                                        |
+| `show ipaddrs`      | ユーザーの IP アドレス履歴を表示                       | `./vast show ipaddrs`                                         |
+| `show subaccounts`  | 現在のサブアカウントを取得                             | `./vast show subaccounts`                                     |
+| `show user`         | 現在のユーザーデータを取得                             | `./vast show user`                                            |
+| `ssh-url`           | SSH URL ヘルパー                                       | `./vast ssh-url`                                              |
+| `start instance`    | 停止したインスタンスを開始                             | `./vast start instance <id>`                                  |
+| `stop instance`     | 実行中のインスタンスを停止                             | `./vast stop instance <id>`                                   |
+| `transfer credit`   | クレジットを別のアカウントに転送                       | `./vast transfer credit RECIPIENT AMOUNT`                     |
+
+### 2. ホストコマンド
+
+以下は、Vast AI CLI のホストコマンドに関する情報です：
+
+### ホストコマンド
+
+1. **list machine**
+
+   - **概要**: マシンをレンタル用にリストします。
+   - **使用方法**:
+     ```
+     ./vast list machine id [--price_gpu PRICE_GPU] [--price_inetu PRICE_INETU] [--price_inetd PRICE_INETD] [--api-key API_KEY]
+     ```
+   - **オプション**:
+     - `-g PRICE_GPU, --price_gpu PRICE_GPU`: GPU ごとのレンタル価格（$/時間）
+     - `-s PRICE_DISK, --price_disk PRICE_DISK`: ストレージ価格（$/GB/月）
+     - `-u PRICE_INETU, --price_inetu PRICE_INETU`: インターネットアップロード帯域幅の価格（$/GB）
+     - `-d PRICE_INETD, --price_inetd PRICE_INETD`: インターネットダウンロード帯域幅の価格（$/GB）
+     - `-r DISCOUNT_RATE, --discount_rate DISCOUNT_RATE`: 長期前払いの最大割引率
+     - `-m MIN_CHUNK, --min_chunk MIN_CHUNK`: GPU の最小量
+     - `-e END_DATE, --end_date END_DATE`: 利用可能な日付の UNIX タイムスタンプ
+
+2. **remove defjob**
+   - **概要**: このコマンドの詳細は切り取られているため、完全な情報は提供できません。
+
+## 使える pyenv 関係のコマンド
+
+`pyenv` は Python のバージョンを管理するツールであり、多くの便利なコマンドが提供されています。以下は `pyenv` の主要なコマンドとその説明をリスト化したものです。
+
+1. **commands**: 利用可能な pyenv コマンドを一覧表示します。
+
+   ```
+   pyenv commands
+   ```
+
+2. **install**: 指定したバージョンの Python をインストールします。
+
+   ```
+   pyenv install 3.8.5
+   ```
+
+3. **uninstall**: 指定したバージョンの Python をアンインストールします。
+
+   ```
+   pyenv uninstall 3.8.5
+   ```
+
+4. **global**: グローバルレベルでの Python バージョンを設定または表示します。
+
+   ```
+   pyenv global 3.8.5
+   ```
+
+5. **local**: ディレクトリごとの Python バージョンを設定または表示します。このコマンドは `.python-version` ファイルを作成または読み取ります。
+
+   ```
+   pyenv local 3.7.7
+   ```
+
+6. **shell**: シェルセッションごとの Python バージョンを設定または表示します。
+
+   ```
+   pyenv shell 3.9.0
+   ```
+
+7. **versions**: インストールされているすべての Python バージョンを一覧表示します。現在選択されているバージョンにはアスタリスク (\*) が表示されます。
+
+   ```
+   pyenv versions
+   ```
+
+8. **version**: 現在の Python バージョンを表示します。
+
+   ```
+   pyenv version
+   ```
+
+9. **rehash**: `shim` に新しい実行可能ファイルをインストールまたは再インストールします。Python パッケージをインストールまたはアンインストールした後に実行することが多いです。
+
+   ```
+   pyenv rehash
+   ```
+
+10. **which**: 指定されたコマンドの実際の実行可能ファイルへのパスを表示します。
+
+    ```
+    pyenv which python
+    ```
+
+11. **whence**: 指定されたコマンドを提供するバージョンを一覧表示します。
+    ```
+    pyenv whence pip
+    ```
+
+このリストは、`pyenv` の主要なコマンドをカバーしていますが、全ての機能やサブコマンドを網羅しているわけではありません。詳細や最新の情報については、公式ドキュメントや `pyenv help` コマンドを参照してください。
