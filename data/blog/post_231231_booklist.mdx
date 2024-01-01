@@ -1,0 +1,71 @@
+---
+title: 2023～2024 年末年始読み物など
+date: '2024-01-02'
+tags: ['life']
+draft: false
+summary: 'RL2023'
+authors: ['gypsyR']
+---
+
+
+# 今年大変役に立った資料集
+
+# Sim & Vision
+- [完全自動運転にLLMは必要か？](https://zenn.dev/turing_motors/articles/353a6e71a1444c)
+- [自動運転におけるAIコンピューティングⅡ](https://www.youtube.com/watch?v=aihOJc0Dd9g)
+- [【レポート】パイプライン開発者が知っておきたいUSDの使い方#CEDEC2021 #classmethod_game | DevelopersIO](https://dev.classmethod.jp/articles/how_to_use_usd_for_developers/)
+- [PID制御とは？仕組みと動作イメージを分かりやすく解説！](https://controlabo.com/pid-control-introduction/)
+- [360FusionNeRF: Panoramic Neural Radiance Fields with Joint Guidance](https://arxiv.org/abs/2209.14265)
+- [MapNeRF: Incorporating Map Priors into Neural Radiance Fields for Driving View Simulation](https://arxiv.org/abs/2307.14981)
+- [NeRF-SLAM: Real-Time Dense Monocular SLAM with Neural Radiance Fields](https://arxiv.org/abs/2210.13641)
+
+# ai
+- [松尾研究室　LLM 大規模言語モデル講座のコンテンツ](https://weblab.t.u-tokyo.ac.jp/llm_contents/)
+- [StreamDiffusion](https://github.com/cumulo-autumn/StreamDiffusion)
+- [【決定版】GPTs開発の教科書｜ChatGPT研究所](https://chatgpt-lab.com/n/n43cc9a028aac)
+- [ChatGPTに会話の長期記憶を持たせてみる #ChatGPT - Qiita](https://qiita.com/shyamagu/items/43e6370dd8937e1711c1)
+
+
+# BTC & nostr
+- [【Nostr】Webサイトにビットコインの投げ銭ボタンを設置しよう【Zap】 | ロクヨウ | Spotlight](https://spotlight.soy/detail?article_id=ucd7cbrql)
+- [マスタリング・ライトニングネットワークの歩き方 - Speaker Deck](https://speakerdeck.com/azuchi/masutaringuraitoningunetutowakunobu-kifang)
+- [NIP-01 - nostr](https://scrapbox.io/nostr/NIP-01#64ecc91a2b313000003e73af)
+
+# 仮想通貨
+- [【Botter Advent Calendar2023】仮想通貨で月に1万円を稼ぐC級Botterになろう](https://note.com/qash/n/n11f79a69daad?sub_rt=share_h)
+- [botter道 ~開発未経験の取引所社員が、ChatGPTに頼り4ヶ月でC級botterになった話~ #Python - Qiita](https://qiita.com/bitbank_nabe/items/4f6e80c85bd67a7a4131)
+
+# others
+- [【11万文字越え】プログラミング初心者に贈る即戦力ガイド #Python - Qiita](https://qiita.com/nuco_bk/items/27f5ad03d0c4b41241fc)
+- [自らを強いエンジニアにするための3つの習慣 / I need to be myself, I can't be no one else - Speaker Deck](https://speakerdeck.com/shinyorke/i-need-to-be-myself-i-cant-be-no-one-else)
+
+
+# 備忘録
+## 自動運転におけるNeRFの位置づけ
+- NeRF-based neural simulator（[動画12分参照](https://www.youtube.com/watch?v=aihOJc0Dd9g)）
+- NeRF  
+  - 松尾先生の意見
+  - 次の単語の予測ができる
+  - 常に予測することで学習（自己教師あり学習）
+  - LLMはできてるが実世界側でできてない
+  - 人間は世界モデル学習済み
+  - 横から何が飛び出してくるかわかる
+  - 実世界のアクチュエータ・センサでも世界モデルできるはずだができてないから、自動運転で高価なセンサ必要
+  - 出来ない理由はあって、言語とセンサ・アクチュエータの違いの話になってくる。技術的に突破しないといけない状況。
+- 実世界データを使うのにNeRF?
+  - 世界モデルの一部・見た目だけ。後ろ側からみたらこう見えるという人間の思考が、NeRFにはある。
+  - 三次元の構造をみることができる。
+  - 世界モデルに比べると時系列もなく、インタラクションもないので、スタート地点として使える
+  - タクシーでドラレコに入ってるデータを一週間に一度もらって、NeRFにいれると通ったところを三次元復元できるに近いこと今できる状況。
+- 世界モデルのブレイクスルーは？
+  - LLMも単純な世界モデルは学習してる
+  - 簡単な絵は描ける状態。
+  - センサ情報ってオーダー・スケール違う情報が混じっている
+  - 周波数特性で分解するなどしていたが
+  - NNのt, t+1 という定式化がおかしい、同じ幅のような時系列なら扱えるが、複数のスケーるが扱えないし、現実は複数を扱ってる
+  - weaveAI
+
+- 圃場
+  - 同じような位置の作物しか作らないはず
+  - 想定しているのは同じコース。
+    - 作物を

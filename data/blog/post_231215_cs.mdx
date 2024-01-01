@@ -1,0 +1,81 @@
+---
+title: Stackの理解
+date: '2023-12-15'
+tags: ['CS']
+draft: false
+summary: 'CS Stack'
+authors: ['gypsyR']
+---
+
+# スタックとは
+- スタックとは、最後に入れた物が最初に出てくるようなデータの保管方法
+- 「最後に入れたものを最初に使う」という要求がある場合に役立つ
+- 一つの動きを戻したい時や、前の状態に戻りたい時にも使える
+
+# 使い道
+- ゲームやアプリの「元に戻す」ボタン。ここで行った操作をスタックに積んでおき、元に戻す時は最後の操作から取り出して消去。したがって、直近の操作を撤回することが可能
+- バックトラック（やり直し）のアルゴリズムにも使用。「いくつかの選択肢から正解を見つける」時によく使用される。
+- すべての選択肢を試し、正解が見つからないときは一つ前の選択に戻り、別の選択肢を試す。これを可能にするのがスタックで、行った経路を保存しておき、戻る時は最後に試した選択肢から取り出す。
+
+
+
+# 例）配列を逆順にする
+- 配列に対し逆向きの配列で返すロジックにスタックが使える。
+- スタックは配列や連結リストを使用して実装される
+- 関数呼び出し時に使用
+    - 関数が呼び出されたとき、引数とローカル変数がスタックにpushされる
+    - 関数が戻ると、popされ消去される
+- 
+
+```python
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+class Stack:
+    def __init__(self):
+        self.head = None
+
+    def push(self, data):
+        temp = self.head
+        self.head = Node(data)
+        self.head.next = temp
+
+    def pop(self):
+        if self.head == None: return None
+        temp = self.head
+        self.head = self.head.next
+        return temp.data
+
+    def peek(self):
+        if self.head == None: return None
+        return self.head.data
+
+# スタックを使うと、後入れ先出しの構造で保持することができます。
+# つまり、全ての要素をスタック内に一度 push し、そこから全てを 
+# pop させると、要素を逆の順番で取り出すことができます。
+
+# 整数によって構成される配列 arr が与えられるので、
+# 配列を受け取って逆向きの配列を返す、reverse という関数を Stack クラスを使って作成
+def reverse(arr):
+    # 配列のデータ
+    s = Stack()
+    length = len(arr)
+
+    # 全ての要素をスタック内に一度push
+    for i, array in enumerate(arr):
+        s.push(array)
+
+    result = []
+
+    # 全ての要素を順番にpopしていく
+    count = 0
+    while count < length:
+        count = count+1
+        temp = s.pop()
+        result.append(temp)
+
+    return result
+
+```
