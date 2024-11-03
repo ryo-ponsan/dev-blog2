@@ -1,0 +1,133 @@
+---
+title: SSH認証でGithubを使用する(windows)
+date: '2024-11-01'
+tags: ['Github']
+draft: false
+summary: ''
+authors: ['ponsan']
+---
+
+### Windows 10でSSHキーを生成してGitHubに登録する方法
+
+#### 前提条件
+- Windows 10がインストールされている
+- PowerShellが利用可能
+- Gitがインストール済み
+
+HTTPS認証よりセキュリティ向上が見込める。そしてパスワード入力が不要のため、パスワードを思い出す手間が省け効率的なアクセスが可能になる。
+
+---
+
+### 手順
+
+1. **SSHキーの生成**
+
+   PowerShellを開き、以下のコマンドを実行してSSHキーを生成する。
+
+   ```powershell
+   ssh-keygen -t ed25519 -C "xxx@gmail.com"
+   ```
+
+   - `-t ed25519` はEd25519アルゴリズムを指定。
+   - `-C "xxx@gmail.com"` にはメールアドレスを記入する。
+
+   以下のように表示される。
+
+   ```plaintext
+   Generating public/private ed25519 key pair.
+   Enter passphrase (empty for no passphrase): （パスフレーズを入力、もしくは空のままEnter）
+   Enter same passphrase again: （再度同じパスフレーズを入力）
+   Your public key has been saved in C:\Users\user/.ssh/id_ed25519.pub
+   ```
+   
+   秘密鍵は、`ssh-keygen` コマンドを実行したときに自動的に生成される。このプロセスの中で、**秘密鍵**と**公開鍵**のペアが作成され、それぞれ以下のように保存される：
+   
+   - **秘密鍵**: デフォルトでは `C:\Users\user\.ssh\id_ed25519` に保存される（拡張子なしのファイル）。
+   - **公開鍵**: デフォルトでは `C:\Users\user\.ssh\id_ed25519.pub` に保存される。
+   
+   `ssh-keygen` を実行するとき、ファイルを保存する場所やファイル名を指定しない限り、デフォルトのディレクトリに鍵ペアが作成される。この秘密鍵ファイルは、GitHubなどに接続する際にのみ利用し、外部には公開しない。
+
+
+2. **公開鍵をクリップボードにコピー**
+
+   以下のコマンドで公開鍵をクリップボードにコピーする。
+
+   ```powershell
+   Get-Content C:\Users\user\.ssh\id_ed25519.pub | clip
+   ```
+
+3. **GitHubにSSHキーを登録**
+
+   GitHubにログインし、以下の手順でSSHキーを登録する。
+
+   1. GitHubの「Settings」から「SSH and GPG keys」を選択し、「New SSH key」をクリック。
+   2. 「Key」フォームにクリップボードの公開鍵を貼り付け、「Add SSH key」をクリック。既存のキーがあれば削除も可能。
+
+4. **SSH接続の確認**
+
+   PowerShellで以下のコマンドを実行し、GitHubへのSSH接続をテストする。
+
+   ```powershell
+   ssh -T github.com
+   ```
+
+   成功すると、以下のようなメッセージが表示される。
+
+   ```plaintext
+   Hi <Username>! You've successfully authenticated, but GitHub does not provide shell access.
+   ```
+
+このメッセージが表示されれば、SSH認証の設定は完了。
+
+
+### SSHキーによる認証の仕組み
+
+SSHキーを使った認証は、**公開鍵暗号方式**を利用しており、以下のように動作する。
+
+- **秘密鍵**: ユーザーが保持し、GitHubなどのサービスに接続する際に使う。外部には公開しない。
+- **公開鍵**: GitHubに登録するもので、秘密鍵がないと利用できないため、公開しても安全である。
+
+#### 認証の流れ
+
+1. ユーザーがGitHubに接続を試みると、GitHubは公開鍵に基づいた「チャレンジ」をユーザーに送る。
+2. ユーザーのマシン上で秘密鍵を使ってこのチャレンジに応答する。
+3. GitHubは応答を確認し、正しい秘密鍵がある場合にのみアクセスを許可する。
+
+この仕組みにより、秘密鍵を持つユーザーだけが安全にGitHubにアクセスできる。
+
+---
+
+### SSH認証設定後のGit操作ユースケース
+
+SSH認証を設定すると、GitHub上のリポジトリへのアクセスが簡単かつ安全に行える。以下は、よく使うユースケースである。
+
+1. **リポジトリのクローン作成**
+   - リポジトリを自分のPCにコピーする。
+   ```bash
+   git clone git@github.com:username/repository.git
+   ```
+
+2. **コードのプッシュ**
+   - 自分の変更をリモートリポジトリに反映する。
+   ```bash
+   git add .
+   git commit -m "変更内容"
+   git push
+   ```
+
+3. **プルリクエストの確認**
+   - 他のメンバーのプルリクエストをローカルに取り込んで動作確認ができる。
+   ```bash
+   git fetch origin pull/ID/head:ブランチ名
+   git checkout ブランチ名
+   ```
+
+4. **リモートの変更をプル**
+   - リモートリポジトリの最新の変更を自分のローカルに取得する。
+   ```bash
+   git pull
+   ```
+
+これらの操作がSSHキーの認証によりパスワードなしで行えるため、スムーズに開発作業が進められる。
+
+[参考ページ](https://qiita.com/shizuma/items/2b2f873a0034839e47ce)

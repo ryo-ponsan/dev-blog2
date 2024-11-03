@@ -13,7 +13,7 @@ export default function Projects() {
             Projects
           </h1>
           <p className="text-lg leading-7 text-gray-200 dark:text-gray-300">
-            開発したアプリです
+            ポートフォリオ一覧
           </p>
         </div>
         <div className="divide-y divide-gray-700 dark:divide-gray-700">

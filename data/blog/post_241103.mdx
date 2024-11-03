@@ -1,0 +1,128 @@
+---
+title: RenderにDRFアプリケーションをデプロイする手順
+date: '2024-11-03'
+tags: ['render','DRF']
+draft: false
+summary: ''
+authors: ['ponsan']
+---
+
+
+Django REST Framework (DRF) アプリケーションをRenderにデプロイし、本番環境で運用するための設定方法を解説する。以下のステップでRenderのWebサービスをセットアップし、環境変数や静的ファイルの設定も行う。
+
+---
+
+### 1. Renderのデプロイ環境をセットアップ
+
+Renderでのデプロイ準備が完了している前提で、Webサービスを作成し、デプロイするリポジトリを選択する。
+
+#### 1-1. Webサービスの作成
+Renderのダッシュボードにアクセスし、「New」→「Web Service」を選択する。WebサービスはRenderでアプリケーションをデプロイする際の基本単位である。
+
+#### 1-2. GitHubリポジトリの選択
+RenderのWebサービス設定画面で、デプロイするGitHubリポジトリとブランチを指定する。Renderがリポジトリの内容をもとにビルドとデプロイを行う。
+
+#### 1-3. DRFの設定変更箇所
+
+**`settings.py` の修正内容**  
+Renderで `gunicorn poddiary.wsgi:application` を使用するために、`settings.py`に以下の変更を加える。
+
+- **ALLOWED_HOSTS の設定**  
+  Renderのドメインを許可するため、`ALLOWED_HOSTS`にRenderのURL（`.onrender.com`）を含める。環境変数から取得する形にしておくと、開発環境と本番環境の切り替えが容易になる。
+
+  ```python
+  ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,.onrender.com").split(",")
+  ```
+
+- **静的ファイルの収集先の指定**  
+  Render環境で静的ファイルを適切に管理するため、`STATIC_ROOT` に静的ファイルの集約先ディレクトリを指定する。
+
+  ```python
+  STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+  ```
+
+- **Build CommandとStart Commandの設定**  
+  デプロイの際には、以下のBuild CommandとStart Commandを設定する。
+
+  - **Build Command**: `pip install -r requirements.txt`
+  - **Start Command**: `gunicorn poddiary.wsgi:application`
+
+  これで、RenderでのデプロイとWSGIのセットアップが完成する。
+
+---
+
+### 2. 環境変数の設定
+
+Renderの「Environment」タブで、以下のように環境変数を設定する。
+
+- **DATABASE_URL**: PostgreSQLインスタンスのURL（Renderのデータベースを利用する場合）
+- **SECRET_KEY**: プロダクション環境用の強力な秘密キー
+- **DEBUG**: 本番環境用に `False` に設定する
+- **Supabase関連の設定**（`SUPABASE_URL`や`SUPABASE_SERVICE_ROLE_KEY`）も必要に応じて追加する
+
+---
+
+### 3. CORS設定の調整
+
+外部からのアクセスを制限するために、CORS設定を追加する。`CORS_ALLOW_ALL_ORIGINS`を`False`にし、Renderのドメインを許可リストに追加する。
+
+```python
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "https://your-app.onrender.com",  # RenderのURL
+]
+```
+
+---
+
+### 4. 静的ファイルとメディアファイルの設定
+
+Renderでの静的ファイル・メディアファイル管理には、以下の設定を追加する。
+
+```python
+STATIC_URL = "/static/"
+MEDIA_URL = "/media/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+```
+
+**静的ファイルの収集**: Renderの「Build Command」に以下のコマンドを追加し、静的ファイルを収集する。
+
+```bash
+python manage.py collectstatic --noinput
+```
+
+---
+
+### 5. Render上のURL変更対応
+
+デプロイ後、RenderのアプリケーションURLが `http://localhost:8000` から `https://your-app.onrender.com` に変わる。フロントエンドのAPIエンドポイントもRenderのURLに変更する。また、RenderではHTTPSが自動的に設定されるため、フロントエンドのリクエストはすべて`https`にするように注意する。
+
+---
+
+### 6. Renderから外部サービスへのアクセス設定（アウトバウンドIP）
+
+Renderが外部サービス（例: データベース、API、ファイルストレージ）にアクセスする際、以下のアウトバウンドIPが使用される。.env ファイルには追加不要だが、外部サービスでホワイトリストに追加する必要がある場合がある。
+
+- 13.228.225.19
+- 18.142.128.26
+- 54.254.162.138
+
+たとえば、データベースやAPIサービスの管理画面でこれらのIPアドレスをホワイトリストに追加し、Renderからのアクセスを許可する。
+
+---
+
+### 7. 動作確認
+
+デプロイが完了したら、Render上でAPIエンドポイントにアクセスし、正常に動作しているか確認する。
+
+```bash
+curl https://your-app.onrender.com/api/your-endpoint/
+```
+
+Renderの「Logs」タブで、エラーログや動作ログを確認可能である。問題が発生した場合はログを参考にデバッグを行う。
+
+---
+
+以上で、RenderへのDjango REST Frameworkアプリケーションのデプロイは完了である。
+これにより、ローカル環境からRenderの本番環境へスムーズに移行し、APIサーバーが公開される。
