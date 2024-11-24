@@ -1,0 +1,730 @@
+---
+title: PodDairyバックエンド紹介
+date: '2024-11-25'
+tags: ['SQL','DRF','PodDiary']
+draft: false
+summary: ''
+authors: ['ponsan']
+---
+開発中のPodDiaryのAPI,DB設計についてREADMEを下記に記載する。現在プライベートリポジトリで開発中。
+
+# PodDiary
+
+PodDiaryは、ユーザーがポッドキャスト番組やエピソードに対する日記（レビュー）を管理し、他のユーザーと共有できるSNSアプリケーションです。
+
+## 目次
+
+- [PodDiary](#poddiary)
+  - [目次](#目次)
+  - [概要](#概要)
+  - [データベース構造](#データベース構造)
+  - [主な機能](#主な機能)
+  - [フロントエンドのテスト用APIエンドポイント](#フロントエンドのテスト用apiエンドポイント)
+    - [1. ユーザー登録とログインAPI](#1-ユーザー登録とログインapi)
+    - [2. 日記投稿API](#2-日記投稿api)
+    - [3. 認証済みユーザーの日記一覧取得API](#3-認証済みユーザーの日記一覧取得api)
+    - [（SNS時点で必要なAPIのため未実施）4. 指定した番組に紐づく日記一覧表示API](#sns時点で必要なapiのため未実施4-指定した番組に紐づく日記一覧表示api)
+      - [(未実装)4-a 特定のユーザーの日記一覧](#未実装4-a-特定のユーザーの日記一覧)
+      - [(未実装)4-b 指定した番組に紐づく日記一覧（ユーザーによらず）](#未実装4-b-指定した番組に紐づく日記一覧ユーザーによらず)
+    - [5. 指定した日記IDの日記編集API](#5-指定した日記idの日記編集api)
+      - [リクエストBODY例1: 日記のテキスト、評価、リスニング日付を更新](#リクエストbody例1-日記のテキスト評価リスニング日付を更新)
+      - [(使用する想定はないが、念のため)リクエストBODY例2: ポッドキャストとエピソードのタイトルを更新](#使用する想定はないが念のためリクエストbody例2-ポッドキャストとエピソードのタイトルを更新)
+      - [リクエストBODY例3: 日記全体を更新](#リクエストbody例3-日記全体を更新)
+    - [注意事項](#注意事項)
+    - [6. 指定した日記IDの日記削除API](#6-指定した日記idの日記削除api)
+    - [7. 認証済みユーザーのユーザー情報取得API](#7-認証済みユーザーのユーザー情報取得api)
+    - [(未テスト)8.認証済みユーザーのユーザー情報更新API](#未テスト8認証済みユーザーのユーザー情報更新api)
+    - [9. 認証済みユーザーのプロフィール情報取得API](#9-認証済みユーザーのプロフィール情報取得api)
+    - [10. 認証済みユーザーのプロフィール情報更新API](#10-認証済みユーザーのプロフィール情報更新api)
+    - [11. ユーザー問い合わせ作成API](#11-ユーザー問い合わせ作成api)
+    - [12. 指定したコメントIDの日記コメント削除API](#12-指定したコメントidの日記コメント削除api)
+    - [13. 認証済みユーザーの退会（論理削除）API](#13-認証済みユーザーの退会論理削除api)
+    - [認証機能](#認証機能)
+      - [リフレッシュトークンによるアクセストークン再発行](#リフレッシュトークンによるアクセストークン再発行)
+    - [退会済みユーザーの復帰処理](#退会済みユーザーの復帰処理)
+    - [具体的な手順](#具体的な手順)
+    - [Renderインスタンスの維持用API](#renderインスタンスの維持用api)
+      - [1. エンドポイント情報](#1-エンドポイント情報)
+      - [2. 認証方法](#2-認証方法)
+      - [3. トークンの設定方法](#3-トークンの設定方法)
+      - [4. 使用例](#4-使用例)
+      - [5. 応答例](#5-応答例)
+      - [6. 定期実行の設定例](#6-定期実行の設定例)
+  - [テストスクリプト](#テストスクリプト)
+  - [環境設定](#環境設定)
+  - [使用方法](#使用方法)
+  - [今後の課題](#今後の課題)
+    - [認証機能の拡張](#認証機能の拡張)
+    - [現在の認証方法](#現在の認証方法)
+      - [エンドポイント: `/api/auth/spotify-login/`](#エンドポイント-apiauthspotify-login)
+      - [エンドポイント: `/api/auth/login/`](#エンドポイント-apiauthlogin)
+    - [将来的な認証方法のサポート](#将来的な認証方法のサポート)
+    - [認証関連の共通処理](#認証関連の共通処理)
+    - [認証機能の拡張エンドポイント](#認証機能の拡張エンドポイント)
+      - [Googleログイン](#googleログイン)
+      - [Appleログイン](#appleログイン)
+  - [参考](#参考)
+    - [Spotify APIのユーザー情報](#spotify-apiのユーザー情報)
+
+## 概要
+
+PodDiaryは、ポッドキャスト番組やエピソードに対する日記（レビュー）を投稿し、他のユーザーと共有するためのアプリケーションです。Djangoをバックエンドに使用し、PostgreSQLデータベースを使用しています。
+
+## データベース構造
+
+- **User**  
+  ユーザー情報を保存するモデル。カスタムユーザーモデルを使用し、以下のフィールドを含みます:
+  - `poddiary_id`: UUIDで自動生成される一意のID。ユーザーの識別に使用。
+  - `spotify_id`: Spotify認証用のユーザーID。`null`許可。
+  - `google_sub`: Googleアカウント認証用の固有ID。`null`許可。
+  - `apple_id`: Apple ID認証用のユーザーID。`null`許可。
+  - `facebook_id`: Facebook認証用のユーザーID。`null`許可。
+  - `email`: メールアドレス。すべての認証方法で共通に使用され、ユニーク制約。
+  - `password`: メールとパスワード認証用のパスワード。`null`許可。
+  - `created_at`: ユーザー作成日時を自動記録。
+
+- **Profile**  
+  ユーザーの追加プロフィール情報を管理するモデル。`User`モデルと一対一の関係を持ちます:
+  - `nickname`: ユーザーのニックネーム。
+  - `bio`: 自己紹介テキスト。最大1,000文字まで。
+  - `profile_image`: プロフィール画像のURL。Spotifyなどから取得可能。
+  - `country`: ユーザーの国情報。ISO 3166-1 alpha-2形式で保存（例: "JP"）。
+  - `followers_count`: Spotifyでのフォロワー数。
+  - `subscription_type`: サブスクリプションタイプ（例: "Free", "Premium"）。
+
+- **Podcast**  
+  ポッドキャスト番組の情報を保存するモデル。以下のフィールドを含みます:
+  - `api_id`: 外部APIからのポッドキャスト識別子。ユニーク制約。
+  - `title`: ポッドキャスト番組のタイトル。
+  - `spotify_url`: ポッドキャストのSpotifyページへのURL。ユーザーがSpotify上の番組ページにアクセスできるリンクとして使用。
+  - `image_url`: ポッドキャストの画像URL。Spotifyなどの外部APIから取得し、番組のサムネイルなどに利用される。
+
+- **Episode**  
+  ポッドキャストの各エピソードに関する情報を保存するモデル。`Podcast`モデルと多対一の関係を持ちます:
+  - `podcast`: エピソードが属するポッドキャストを参照する外部キー。
+  - `api_id`: 外部APIからのエピソード識別子。ユニーク制約。
+  - `title`: エピソードのタイトル。
+  - `spotify_url`: エピソードのSpotifyページへのURL。ユーザーがSpotify上のエピソードページにアクセスできるリンクとして使用。
+  - `image_url`: エピソードの画像URL。エピソードのサムネイルとして表示するために使用。
+
+- **Diary**  
+  ユーザーがポッドキャストやエピソードに対して投稿する日記（レビュー）を保存するモデル。以下のフィールドを持ちます:
+  - `user`: 日記を投稿したユーザーを参照する外部キー。
+  - `podcast`: レビュー対象のポッドキャストを参照する外部キー。
+  - `episode`: レビュー対象のエピソード（存在する場合）。`null`許可。
+  - `diary_text`: 日記の内容をテキストで保存。
+  - `rating`: ユーザーがつけた評価。最大3桁（小数点以下2桁）の数値。
+  - `listened_on`: エピソードを聴いた日付。`null`許可。
+  - `created_on`: 日記の作成日時を自動記録。
+
+- **DiaryComment**  
+  日記に対するコメントを管理するモデル。以下のフィールドを含みます:
+  - `diary`: コメントが紐づく日記を参照する外部キー。
+  - `user`: コメントを投稿したユーザーを参照する外部キー。
+  - `text`: コメントの内容をテキストで保存。
+  - `created_on`: コメントの作成日時を自動記録。
+
+- **HelpRequest**  
+  ユーザーからの問い合わせを管理するモデル。以下のフィールドを持つ:
+  - `user`: 問い合わせを行ったユーザーを参照する外部キー。
+  - `subject`: 問い合わせの件名を保存するフィールド。最大100文字。
+  - `description`: 問い合わせの詳細内容を保存するフィールド。最大500文字。
+  - `category`: 問い合わせのジャンルを保存するフィールド（例: ログイン、機能リクエスト）。
+  - `status`: 問い合わせの進捗状況（`open`, `in_progress`, `resolved`, `closed`）。デフォルトは`open`。
+  - `developer_notes`: 開発者が対応内容を記録するメモ欄。必要に応じて記録。
+  - `created_on`: 問い合わせの作成日時を自動記録。
+  - `updated_on`: 最終更新日時を自動記録。
+
+## 主な機能
+
+1. **ユーザー管理**
+   - Spotify認証を使用したユーザー登録、ログイン、プロフィール管理。
+   
+2. **ポッドキャスト管理**
+   - ポッドキャスト番組とエピソードの情報を管理。
+
+3. **日記（レビュー）管理**
+   - ポッドキャストやエピソードに対する日記（レビュー）を投稿、閲覧、コメントができる。
+
+4. **認証機能**
+   - JWTを使ったユーザー認証。
+
+5. **ユーザー問い合わせ管理**
+   - ユーザーからの問い合わせを受け付け、件名や詳細、ジャンルに基づいて管理する機能。問い合わせの進捗状況を「open」「in_progress」「resolved」「closed」で管理し、開発者が対応内容を記録することも可能。
+
+## フロントエンドのテスト用APIエンドポイント
+
+**テスト環境の注意事項**  
+このドキュメントでは、テスト用のAPIエンドポイントのサンプルIPアドレスとして「http://192.168.0.100」を使用しています。実際のテストでは適切なローカルIPアドレスに置き換えてください。
+
+### 1. ユーザー登録とログインAPI
+
+- **HTTPメソッド**: `POST`
+- **エンドポイントURL**: `/api/auth/spotify-login/`
+- **例**: 
+```http
+POST http://192.168.0.100:8000/api/auth/spotify-login/
+```
+- **リクエストBODY**:
+```json
+{
+    "spotify_id": "user_spotify_id",
+    "username": "test_user",
+    "email": "test_user@example.com",
+    "profile_image": "https://example.com/image.jpg",
+    "country": "JP",
+    "subscription_type": "premium"
+}
+```
+- **レスポンス**:
+  - `201 Created`（新規ユーザー）または `200 OK`（既存ユーザー）
+  - `access`（JWTトークン）と`refresh`（リフレッシュトークン）
+
+### 2. 日記投稿API
+
+- **HTTPメソッド**: `POST`
+- **エンドポイントURL**: `/api/diaries/`
+- **認証**: 必須（JWTトークンを含める必要あり）
+- **例**: 
+```http
+POST http://192.168.0.100:8000/api/diaries/
+```
+- **リクエストBODY**:
+```json
+{
+  "podcast": {
+    "api_id": "podcast_id_1",
+    "title": "Sample Podcast Title",
+    "spotify_url": "https://open.spotify.com/show/xyz123",
+    "image_url": "https://example.com/podcast_image.jpg"
+  },
+  "episode": {
+    "api_id": "episode_id_1",
+    "title": "Sample Episode Title",
+    "spotify_url": "https://open.spotify.com/episode/abc456",
+    "image_url": "https://example.com/episode_image.jpg"
+  },
+  "diary_text": "This is a sample diary text.",
+  "rating": "4.00",
+  "listened_on": "2024-08-10"
+}
+
+```
+- **リクエスト**: image_urlはnullや空文字を許容する設定なので、リクエストBODYに含めない場合でも問題ない。
+- **レスポンス**:
+  - `201 Created`
+  - 投稿された日記のデータ
+
+- **エラー時（409 Conflict: 一意制約違反）**:
+  - 一意制約に違反した場合に返されるエラー
+```json
+{
+  "error_code": 1001,
+  "message": "A diary for this podcast and episode already exists."
+}    
+```
+
+### 3. 認証済みユーザーの日記一覧取得API
+
+- **HTTPメソッド**: `GET`
+- **エンドポイントURL**: `/api/diaries/user_diaries/`
+- **認証**: 必須（JWTトークンを含める必要あり）
+- **例**:
+```http
+GET http://192.168.0.100:8000/api/diaries/user_diaries/
+```
+- **レスポンス**:
+  - `200 OK`
+  - ログイン中のユーザーに紐づく日記一覧
+
+### （SNS時点で必要なAPIのため未実施）4. 指定した番組に紐づく日記一覧表示API
+
+#### (未実装)4-a 特定のユーザーの日記一覧
+
+- **HTTPメソッド**: `GET`
+- **エンドポイントURL**: `/api/diaries/diaries_by_podcast_and_user/`
+- **認証**: 必須（JWTトークンを含める必要あり）
+- **例**:
+```http
+GET http://192.168.0.100:8000/api/diaries/diaries_by_podcast_and_user/?api_id=6isujRxmEgfroLaonoa7Mk
+```
+
+#### (未実装)4-b 指定した番組に紐づく日記一覧（ユーザーによらず）
+
+- **HTTPメソッド**: `GET`
+- **エンドポイントURL**: `/api/diaries/diaries_by_podcast/`
+- **例**:
+```http
+GET http://192.168.0.100:8000/api/diaries/diaries_by_podcast/?api_id=6isujRxmEgfroLaonoa7Mk
+```
+
+### 5. 指定した日記IDの日記編集API
+
+- **HTTPメソッド**: `PATCH`
+- **エンドポイントURL**: `/api/diaries/{id}/`
+- **認証**: 必須（JWTトークンを含める必要あり）
+- **例**:
+```http
+PATCH http://192.168.0.100:8000/api/diaries/12/
+```
+
+#### リクエストBODY例1: 日記のテキスト、評価、リスニング日付を更新
+```json
+{
+  "diary_text": "Updated diary text.",
+  "rating": 5.00,
+  "listened_on": "2024-08-14"
+}
+```
+
+#### (使用する想定はないが、念のため)リクエストBODY例2: ポッドキャストとエピソードのタイトルを更新
+```json
+{
+  "podcast": {
+    "api_id": "podcast_id_1",
+    "title": "Updated Podcast Title"
+  },
+  "episode": {
+    "api_id": "episode_id_10",
+    "title": "Updated Episode Title"
+  }
+}
+```
+
+#### リクエストBODY例3: 日記全体を更新
+```json
+{
+  "podcast": {
+    "api_id": "podcast_id_1",
+    "title": "Updated Podcast Title"
+  },
+  "episode": {
+    "api_id": "episode_id_10",
+    "title": "Updated Episode Title"
+  },
+  "diary_text": "Completely updated diary text.",
+  "rating": 4.75,
+  "listened_on": "2024-08-15"
+}
+```
+
+### 注意事項
+- `PATCH`メソッドを使用することで、提供されたデータのみが更新され、他のフィールドはそのまま保持されます。
+- ポッドキャストやエピソードを更新する場合、既存の`api_id`を指定してください。新しい`title`が提供されれば、それに応じてタイトルが更新されます。
+- リクエストBODY例3のように、全体を更新する場合は、すべてのフィールドを提供することができます。
+
+### 6. 指定した日記IDの日記削除API
+
+- **HTTPメソッド**: `DELETE`
+- **エンドポイントURL**: `/api/diaries/{id}/`
+- **認証**: 必須（JWTトークンを含める必要あり）
+- **例**:
+  ```http
+  DELETE http://192.168.0.100:8000/api/diaries/12/
+  ```
+- **説明**: 指定した日記IDの日記を論理削除します。関連するコメントも論理削除されます。
+
+---
+### 7. 認証済みユーザーのユーザー情報取得API
+
+- **HTTPメソッド**: `GET`
+- **エンドポイントURL**: `/api/users/me/`
+- **認証**: 必須（JWTトークンを含める必要あり）
+- **例**:
+```http
+GET http://192.168.0.100:8000/api/users/me/
+```
+- **レスポンス**:
+  - `200 OK`
+  - ログイン中のユーザーの詳細情報（プロフィール情報を含む）
+
+### (未テスト)8.認証済みユーザーのユーザー情報更新API
+
+- **HTTPメソッド**: `PUT` または `PATCH`
+- **エンドポイントURL**: `/api/users/me/update/`
+- **認証**: 必須（JWTトークンを含める必要あり）
+- **例**:
+```http
+PATCH http://192.168.0.100:8000/api/users/me/update/
+```
+- **リクエストBODY**:
+```json
+{
+  "username": "new_username",
+  "email": "new_email@example.com",
+  "profile": {
+    "nickname": "new_nickname",
+    "bio": "Updated bio",
+    "profile_image": "https://example.com/updated_image.jpg",
+    "country": "US",
+    "subscription_type": "free"
+  }
+}
+```
+- **レスポンス**:
+  - `200 OK`
+  - 更新されたユーザーの詳細情報
+
+### 9. 認証済みユーザーのプロフィール情報取得API
+
+- **HTTPメソッド**: `GET`
+- **エンドポイントURL**: `/api/profiles/my_profile/`
+- **認証**: 必須（JWTトークンを含める必要あり）
+- **例**:
+```http
+GET http://192.168.0.100:8000/api/profiles/my_profile/
+```
+- **レスポンス**:
+  - `200 OK`
+  - ログイン中のユーザーのプロフィール情報
+
+### 10. 認証済みユーザーのプロフィール情報更新API
+
+- **HTTPメソッド**: `PUT` または `PATCH`
+- **エンドポイントURL**: `/api/profiles/update_my_profile/`
+- **認証**: 必須（JWTトークンを含める必要あり）
+- **例**:
+```http
+PATCH http://192.168.0.100:8000/api/profiles/update_my_profile/
+```
+- **リクエストBODY**:
+```json
+{
+  "nickname": "updated_user",
+  "bio": "This is an updated bio.",
+  "profile_image": "https://example.com/updated_image.jpg",
+  "country": "US",
+  "subscription_type": "free"
+}
+```
+- **レスポンス**:
+  - `200 OK`
+  - 更新されたプロフィール情報
+
+### 11. ユーザー問い合わせ作成API
+
+- **HTTPメソッド**: `POST`
+- **エンドポイントURL**: `/api/help-requests/`
+- **認証**: 必須（JWTトークンを含める必要あり）
+- **例**:
+```http
+POST http://192.168.0.100:8000/api/help-requests/
+
+```
+- **リクエストBODY**:
+```json
+{
+    "subject": "ログインできない",
+    "description": "メールアドレスを入力してもログインできません。",
+    "category": "不具合"
+}
+
+```
+- **説明**: `category`は「問い合わせ」「不具合」「改善」「その他」とする。
+
+---
+### 12. 指定したコメントIDの日記コメント削除API
+
+- **HTTPメソッド**: `DELETE`
+- **エンドポイントURL**: `/api/diary-comments/{id}/`
+- **認証**: 必須（JWTトークンを含める必要あり）
+- **例**:
+  ```http
+  DELETE http://192.168.0.100:8000/api/diary-comments/25/
+  ```
+- **説明**: 指定したコメントIDのコメントを論理削除します。`is_deleted=True`と`deleted_at`に現在時刻を設定し、日記本体には影響しません。
+
+---
+
+### 13. 認証済みユーザーの退会（論理削除）API
+
+- **HTTPメソッド**: `DELETE`
+- **エンドポイントURL**: `/api/users/me/delete/`
+- **認証**: 必須（JWTトークンを含める必要あり）
+- **例**:
+  ```http
+  DELETE http://192.168.0.100:8000/api/users/me/delete/
+  ```
+- **説明**: ログイン中のユーザーアカウントを論理削除します。関連するプロフィール、日記、コメントも全て論理削除されます。
+
+
+### 認証機能
+
+#### リフレッシュトークンによるアクセストークン再発行
+
+`rest_framework_simplejwt` が提供する `TokenRefreshView` を使用して、アクセストークンが無効になった場合でも、有効なリフレッシュトークンを使用して新しいアクセストークンを取得できます。これにより、ユーザーは再ログインすることなくセッションを維持できます。
+
+- **HTTPメソッド**: `POST`
+- **エンドポイントURL**: `/api/token/refresh/`
+- **リクエストBODY**:
+```json
+{
+    "refresh": "user_refresh_token"
+}
+```
+- **レスポンス**:
+  - `200 OK` 新しいアクセストークンが発行されます。
+  - `401 Unauthorized` リフレッシュトークンが無効である場合。
+
+---
+
+### 退会済みユーザーの復帰処理
+
+1. **ログイン時**：ユーザーが`POST /api/auth/spotify-login/`でログインしようとした際、レスポンスに`"reactivate": true`フラグが含まれていた場合、退会済みユーザーが見つかったことを意味します。
+   
+   - **フロントエンド側対応**：この場合、ユーザーに「復帰確認」を促すUIを表示し、「はい」を選択すると、下記のエンドポイントを実行するように設定してください。
+   
+2. **復帰確認後**：
+   - **復帰API**: `POST /api/users/reactivate/`
+   - **リクエストBODY**:
+     ```json
+     {
+         "user_id": "対象ユーザーのID"
+     }
+     ```
+   - **レスポンス**：復帰が成功すると、`200 OK`ステータスが返されます。この後、再度ログインページにリダイレクトし、通常のログインフローに戻ります。
+
+以下のように追記してください：
+
+退会済みユーザーがログインを試みた際、**POST `/api/auth/spotify-login/`** を実行します。このエンドポイントからのレスポンスに `reactivate` フラグが `true` であり、`user_id` が含まれている場合、退会済みのユーザーが見つかっていることを意味します。この場合、フロントエンドで「復帰確認を促すUI」を表示し、ユーザーが「はい」を選択すると **POST `/api/users/reactivate/`** が実行されます。このリクエストには、`user_id` を含めて送信し、アカウントの復帰を行います。
+
+---
+
+### 具体的な手順
+
+1. **ログイン試行（POST `/api/auth/spotify-login/`）**
+   - 退会済みユーザーが見つかった場合：
+      - レスポンスに `reactivate: true` と `user_id` が返される。
+
+2. **復帰確認を促すUI表示**
+   - フロントエンドで「アカウントを復帰しますか？」のような確認UIを表示し、ユーザーに復帰の選択をさせる。
+
+3. **復帰API実行（POST `/api/users/reactivate/`）**
+   - ユーザーが「はい」を選択すると、`user_id` をリクエストボディに含め、アカウント復帰APIを実行する。
+
+---
+
+
+### Renderインスタンスの維持用API
+
+Renderインスタンスのスリープを防ぐため、定期的にアクセスできる専用のエンドポイントを追加しました。このエンドポイントに定期的にアクセスすることで、インスタンスがアクティブな状態を維持できます。
+
+#### 1. エンドポイント情報
+
+- **エンドポイントURL**: `/api/keep-render-alive/`
+- **HTTPメソッド**: `GET`
+- **認証**: 特定のヘッダーを必要とする（以下参照）
+
+#### 2. 認証方法
+
+- このエンドポイントは一般公開されていないため、アクセス時に特定のリクエストヘッダーを要求します。
+- リクエストに`X-Keep-Alive-Token`ヘッダーを含め、このヘッダーに環境変数`.env`で設定したトークンを設定する必要があります。
+
+#### 3. トークンの設定方法
+
+`.env`ファイルに以下の項目を追加してください。
+
+```plaintext
+KEEP_ALIVE_TOKEN=your-secret-token
+```
+
+#### 4. 使用例
+
+適切なヘッダーを追加して、以下のようにリクエストを送信します。
+
+```http
+GET /api/keep-render-alive/ HTTP/1.1
+Host: your-render-app-url.com
+X-Keep-Alive-Token: your-secret-token
+```
+
+#### 5. 応答例
+
+- **200 OK**: トークンが一致する場合、インスタンスの維持が確認されます。
+  ```json
+  {
+    "detail": "Keep-alive check successful"
+  }
+  ```
+- **401 Unauthorized**: トークンが一致しない場合、認証エラーが発生します。
+  ```json
+  {
+    "detail": "Unauthorized"
+  }
+  ```
+
+#### 6. 定期実行の設定例
+
+Google Apps Scriptなどで、15分以内にこのエンドポイントにリクエストを送信するように設定することで、インスタンス(free版)を維持可能。
+
+## テストスクリプト
+
+テストはアプリケーションの各機能が正しく動作していることを確認するために不可欠です。以下は、現在存在するテストスクリプトの一覧です。
+
+1. **`test_user_registration_login.py`**  
+   このスクリプトは、ユーザーの登録とログインの機能をテストします。具体的には、Spotify IDを使ったユーザー登録後に、JWTトークンが正しく発行されるかを確認し、同じデータで再度ログインを試みて、再度トークンが発行されるかを確認します。
+
+2. **`test_users2_registration_login.py`**  
+   このスクリプトは、2人のユーザーの登録とログインの機能をテストします。具体的には、Spotify IDを使ったユーザー登録後に、JWTトークンが正しく発行されるかを確認する。
+
+3. **`test_user_diary.py`**  
+   このスクリプトでは、認証されたユーザーが日記を投稿し、データベースに正しく保存されていることを確認するテストを行います。具体的には、ユーザー登録と認証、日記投稿、ログインしてるユーザーの日記一覧取得、データベース確認の流れをテストします。
+
+4. **`test_user_info.py`**  
+   このスクリプトでは、認証されたユーザーが自身のプロフィール情報を取得および更新できるかをテストします。具体的には、ユーザー情報およびプロフィール情報の取得、プロフィール情報の更新、テスト終了後のデータベースの内容確認などを行います。また、他のユーザーがプロフィールを不正に更新しようとした場合や、認証なしでのリクエストに対するテストケースも含まれています。
+
+5. **`test_refresh_token.py`**  
+   このスクリプトでは、JWTリフレッシュトークンを使用して新しいアクセストークンを取得する機能をテストします。具体的なテストケースは以下の通りです。
+
+   - **有効なリフレッシュトークン**を使用して、新しいアクセストークンを正常に取得できるかを確認します。
+   - **無効なリフレッシュトークン**でリクエストした際に、正しく`401 Unauthorized`が返されるかを確認します。
+   - **無効なアクセストークンと有効なリフレッシュトークン**の組み合わせでリクエストした際に、正常に新しいアクセストークンが発行されるかを確認します。
+
+   これにより、アクセストークンの期限が切れた場合でも、ユーザーが再ログインせずにセッションを維持できることを確認しています。
+
+
+## 環境設定
+
+- **Django Settings**
+  - **SECRET_KEY**: 環境変数`.env`に保存。
+  - **ALLOWED_HOSTS**: ローカルIPやフロントエンドのホストを指定。
+  - **CORS設定**: 必要なオリジンを許可。CORSミドルウェアを設定。
+  - **データベース**: PostgreSQLを使用。接続情報も`.env`に保存。
+
+## 使用方法
+
+- APIエンドポイントにアクセスして、ユーザー管理、ポッドキャスト管理、日記の投稿・閲覧などの操作を行うことができます。
+- 各エンドポイントについての詳細な使用方法は、`/api/`にアクセスするか、`api/urls.py`を参照してください。
+
+## 今後の課題
+
+- **モデルの再検討**： userは日記にタグ付けを５つまでできるようにしたい。将来的に
+- **spotify api 以外のログイン方法**： アプリ別のタグが必要か
+- **他ユーザープロフィールの閲覧**：現在は日記アプリだが、将来的にSNS化もしたいのでそのときに必要なAPI実装
+- **他ユーザーの日記閲覧**：上記同様将来的に必要
+- **フロントエンドとの統合**: フロントエンドでのUI/UX改善を図り、バックエンドとの連携を強化。
+- **テストの充実**: フロントエンドからのAPIテストや自動テストの整備。
+
+### 認証機能の拡張
+
+PodDiaryの認証機能は、Spotifyアカウント連携によるユーザー登録およびログインをサポートしていますが、将来的には他の認証プロバイダ（Google, Appleなど）のサポートも予定しています。
+
+### 現在の認証方法
+
+1. **Spotify認証**:
+   - ユーザーはSpotifyアカウントを使用してログインでき、`spotify_id`を基にユーザーが識別されます。
+   - 新規ユーザーは、自動的にアカウントが作成され、プロフィールも初期設定されます。
+
+#### エンドポイント: `/api/auth/spotify-login/`
+
+- **HTTPメソッド**: `POST`
+- **リクエストBODY**:
+```json
+{
+    "spotify_id": "spotify_user_id",
+    "username": "user_name",
+    "email": "user_email@example.com",
+    "profile_image": "https://example.com/image.jpg",
+    "country": "JP",
+    "subscription_type": "premium"
+}
+```
+- **レスポンス**:
+  - 成功時にはJWTトークンが発行され、レスポンスには`refresh`トークンと`access`トークンが含まれます。
+
+2. **Email & Password認証**:
+   - 現在はSpotify認証が中心ですが、ユーザーは将来的にメールとパスワードによる認証も利用可能になります。
+   - この機能により、Spotify連携が利用できない場合でもアカウントへのアクセスが保証されます。
+
+#### エンドポイント: `/api/auth/login/`
+- **HTTPメソッド**: `POST`
+- **リクエストBODY**:
+```json
+{
+    "email": "user_email@example.com",
+    "password": "user_password"
+}
+```
+- **レスポンス**:
+  - 成功時にはJWTトークンが発行され、レスポンスには`refresh`トークンと`access`トークンが含まれます。
+
+### 将来的な認証方法のサポート
+
+PodDiaryでは、以下の認証方法も追加予定です:
+1. **Google認証**:
+   - Google OAuth 2.0を使用して、ユーザーがGoogleアカウントでログインできるようにします。
+   
+2. **Apple認証**:
+   - Apple IDを使用した認証がサポートされ、AppleユーザーがPodDiaryにログインできるようにします。
+
+### 認証関連の共通処理
+
+PodDiaryでは、各認証プロバイダごとの共通処理を利用して、ユーザーの作成・取得を統一的に行います。以下は、プロバイダごとのユーザーを作成または取得する共通関数です。
+
+```python
+def create_or_get_user_by_provider(provider_id, provider_type, email, username):
+    """
+    プロバイダIDとプロバイダタイプ（Spotify, Google, Appleなど）でユーザーを作成または取得する共通処理。
+    """
+    if provider_type == 'spotify':
+        user, created = User.objects.get_or_create(spotify_id=provider_id, defaults={"username": username, "email": email})
+    elif provider_type == 'google':
+        user, created = User.objects.get_or_create(google_sub=provider_id, defaults={"username": username, "email": email})
+    elif provider_type == 'apple':
+        user, created = User.objects.get_or_create(apple_id=provider_id, defaults={"username": username, "email": email})
+    else:
+        raise ValueError("Invalid provider type")
+
+    return user, created
+```
+
+### 認証機能の拡張エンドポイント
+
+#### Googleログイン
+
+- **エンドポイントURL**: `/api/auth/google-login/`
+- **メソッド**: `POST`
+- **説明**: GoogleのIDトークンを使用してログインし、ユーザーを作成またはログインさせます。将来的に追加予定。
+
+#### Appleログイン
+
+- **エンドポイントURL**: `/api/auth/apple-login/`
+- **メソッド**: `POST`
+- **説明**: AppleのIDトークンを使用してログインし、ユーザーを作成またはログインさせます。将来的に追加予定。
+
+---
+
+## 参考
+
+### [Spotify API](https://developer.spotify.com/documentation/web-api/reference/get-current-users-profile)のユーザー情報
+
+```json
+{
+  "country": "string",
+  "display_name": "string",
+  "email": "string",
+  "explicit_content": {
+    "filter_enabled": false,
+    "filter_locked": false
+  },
+  "external_urls": {
+    "spotify": "string"
+  },
+  "followers": {
+    "href": "string",
+    "total": 0
+  },
+  "href": "string",
+  "id": "string",
+  "images": [
+    {
+      "url": "https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228",
+      "height": 300,
+      "width": 300
+    }
+  ],
+  "product": "string",
+  "type": "string",
+  "uri": "string"
+}
+```

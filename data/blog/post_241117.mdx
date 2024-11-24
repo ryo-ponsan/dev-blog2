@@ -1,0 +1,52 @@
+---
+title: 複合一意制約(PodDairy)
+date: '2024-11-17'
+tags: ['SQL','DRF','PodDiary']
+draft: false
+summary: ''
+authors: ['ponsan']
+---
+開発中のPodDiaryのDB設計、及び、APIでの設計最適化を検討
+
+# 改善: 複合一意制約（UniqueConstraint）
+ユーザーが特定のポッドキャストとエピソードの組み合わせで一つしか日記を投稿できないようにするための変更
+
+### 複合一意制約の追加
+- user, podcast, episodeの組み合わせが一意であることを保証
+- DjangoのMetaクラスに`UniqueConstraint`を追加
+    - fields=['user', 'podcast', 'episode'] によって、ユーザーごとにポッドキャストとエピソードの組み合わせが一意になるよう設定
+    - 制約名はunique_user_podcast_episode
+- PostgreSQLに適用されるSQL
+```sql
+ALTER TABLE appname_diary
+ADD CONSTRAINT unique_user_podcast_episode UNIQUE (user_id, podcast_id, episode_id);
+```
+
+### APIエラーハンドリングの修正
+一意制約違反が発生した場合、適切なエラーをクライアントに返すようにAPIビューを更新
+```json
+{
+  "error_code": 1001,
+  "message": "A diary for this podcast and episode already exists."
+}    
+```
+
+### クライアント側の処理
+共有から日記投稿する画面にて。
+1. **POSTリクエストを送信**
+   - クライアントは`POST /api/diaries/`にリクエストを送信。
+
+2. **レスポンスの解析**
+   - **成功（201 Created）**:
+     - 新しく作成された日記の詳細データを受け取り、UIで表示。（投稿完了）
+   - **エラー（409 Conflict）**:
+     - エラーコード`1001`を検知し、ユーザーに「既存データがある」と通知。
+
+3. **UIの変更**
+   - クライアント側で「既存データの上書きを行いますか？」の確認ダイアログを表示。
+
+4. **PATCHリクエストの送信**
+   - ユーザーが上書きを承認した場合、`PATCH /api/diaries/<id>/`で既存データを更新。
+
+5. **レスポンス確認**
+   - 更新が成功した場合、新しい日記データを表示。
