@@ -63,7 +63,7 @@ const projectsData = [
   },
   {
     id: 2,
-    header: 'Web SiteWeb App',
+    header: 'Web App',
     contents: webApps,
   },
   {
