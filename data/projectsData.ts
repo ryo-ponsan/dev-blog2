@@ -31,7 +31,7 @@ const mobileApps = [
     title: '(開発中)PodDiary ',
     description: `PodCast(spotify)に特化した日記Androidアプリ。使用技術：Flutter/Django Rest Framework/Render/Supabase(PostgreSQL)`,
     imgSrc: '/static/images/poddiary_sample.png',
-    href: 'https://drive.google.com/drive/u/0/folders/1FraFzg_VaGbWQ-9kaD6jxBFOZWZRaMqJ',
+    href: 'https://drive.google.com/file/d/1_wAB053VgQ0UU2qM1ceD7zWh4s03zPL3/view?usp=drive_link',
   },
 ]
 const devTools = [
