@@ -73,7 +73,7 @@ const projectsData = [
   },
   {
     id: 4,
-    header: 'TTools for dev',
+    header: 'Tools for dev',
     contents: devTools,
   },
 ]
