@@ -33,6 +33,12 @@ const mobileApps = [
     imgSrc: '/static/images/poddiary_sample.png',
     href: 'https://drive.google.com/file/d/1_wAB053VgQ0UU2qM1ceD7zWh4s03zPL3/view?usp=drive_link',
   },
+  {
+    title: 'テスト用PodDiary-Webapp ',
+    description: `PodDiaryのAPI機能テスト用WebApp。使用技術：React, Tailwind CSS`,
+    imgSrc: '/static/images/pod-web.png',
+    href: 'https://poddiary-web-client-vercel.vercel.app/login',
+  },
 ]
 const devTools = [
   {
