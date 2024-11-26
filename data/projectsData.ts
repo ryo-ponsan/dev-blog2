@@ -9,7 +9,7 @@ const webSites = [
     title: '初代Blog',
     description: `人生初作成したブログ。記念に。`,
     imgSrc: '',
-    href: 'https://dev-blog-gypsyr.vercel.app/',
+    href: 'https://dev-blog-three-alpha.vercel.app/',
   },
 ]
 const webApps = [
