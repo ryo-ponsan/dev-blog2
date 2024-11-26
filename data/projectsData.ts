@@ -15,7 +15,7 @@ const webSites = [
 const webApps = [
   {
     title: 'DAO for web3 Hackathon【TOYOTA × KEY3】 ',
-    description: `Web3ハッカソンでの成果物.[Githubリポジトリ](https://github.com/ourTeamDev/DAO-nextjs-thirdweb).[感想ブログ](https://dev-blog-gypsyr.vercel.app/blog/post_230325).`,
+    description: `Web3ハッカソンでの成果物.[Githubリポジトリ](https://github.com/ourTeamDev/DAO-nextjs-thirdweb).[感想ブログ](https://dev-blog-gypsyr.vercel.app/blog/post_230326).`,
     imgSrc: '/static/images/dao_web3.png',
     href: 'https://youtu.be/9B54_ES4tOY',
   },
