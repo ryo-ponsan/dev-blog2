@@ -1,0 +1,182 @@
+---
+title: cakePHPとDjango比較しながら、セットアップ備忘録
+date: '2024-11-27'
+tags: ['PHP']
+draft: false
+summary: ''
+authors: ['ponsan']
+---
+- [cakePHPチュートリアル](https://book.cakephp.org/5/ja/installation.html)を完了する（windows）
+- [クイックスタート後は、ページ下部の復習コンテンツ](https://book.cakephp.org/5/ja/index.html)
+
+
+# composerインストール
+- URL
+- [README](https://github.com/composer/windows-setup)
+
+```bash
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+php composer-setup.php
+php -r "unlink('composer-setup.php');"
+```
+
+# cakePHPプロジェクト作成
+django startprojectと同じ。
+```bash
+php composer.phar create-project --prefer-dist cakephp/app:"4.*" my_app_name
+```
+
+## compposer install
+pip install requirements.pyや、npm installのようなもの
+```bash
+composer install
+```
+
+20,30分低スペックPCだと時間がかかる
+
+
+
+# 開発用サーバー
+アプリケーションに対し、GUIで操作できるようなGUIツールらしい。
+
+```bash
+bin/cake server
+```
+
+- Apache をXAMPPで起動でもいい。
+
+CakePHP専用の簡易開発サーバーを起動。
+開発環境での動作確認やテストに最適。
+デフォルトではポート 8765 を使用。
+
+XAMPPのwebサーバーは
+本格的なWebサーバーで、他のPHPアプリケーションも動作可能。
+プロジェクトを htdocs ディレクトリ以下に配置し、http://localhost/my_app_name でアクセス。
+
+
+`http://localhost:8080/phpmyadmin/`
+にアクセス。
+
+# DB作成
+- phpMyAdminの「SQL」から、SQL実行しテーブル作成
+- [参考](https://book.cakephp.org/5/ja/tutorials-and-examples/cms/database.html)
+- [モデルの作成](https://book.cakephp.org/5/ja/tutorials-and-examples/cms/database.html#id2)
+    - Table オブジェクトは、指定されたテーブルの中に保存されたエンティティーの集合へのアクセスを提供
+    - bakeコマンドで生成するもの
+    - bakeはDjango REST Framework (DRF) におけるモデル定義とシリアライザの自動生成にあたる。
+- その前に、各種設定必要
+    - app_local.php
+```php
+    'Security' => [
+        // 'salt' => env('SECURITY_SALT', '__SALT__'),
+        'salt' => env('SECURITY_SALT', 'default_salt_key'),
+    ],
+```
+
+- そのあと
+    - .env
+```php
+export SECURITY_SALT=
+```
+
+- そのあと
+    - config/bootstrap.phpで書きコメントイン
+
+```php
+if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
+```
+
+- **XAMPP**の場合Datasourcesの設定で進める。app_local.phpを修正
+
+```php
+    'Datasources' => [
+        'default' => [
+            'className' => Cake\Database\Connection::class, // 正しいクラス名
+            'driver' => Mysql::class,
+            'persistent' => false,
+            'host' => 'localhost',
+            'username' => 'root',
+            'password' => '', // XAMPPデフォルトの場合
+            'database' => 'cake_cms',
+            'encoding' => 'utf8mb4',
+            'timezone' => 'UTC',
+            'cacheMetadata' => true,
+        ],
+    ]
+```
+
+- bake コマンドで、下記出力続く
+
+
+```bash
+bin/cake bake model all
+```
+
+```bash
+bin/cake bake model all
+One moment while associations are detected.
+
+Baking table class for Articles...
+
+Creating file C:\Users\user\source\learning\php_practice\my_app_name\src\Model\Table\ArticlesTable.php
+Wrote `C:\Users\user\source\learning\php_practice\my_app_name\src\Model\Table\ArticlesTable.php`
+Deleted `C:\Users\user\source\learning\php_practice\my_app_name\src\Model\Table\.gitkeep`
+
+Baking entity class for Article...
+
+Creating file C:\Users\user\source\learning\php_practice\my_app_name\src\Model\Entity\Article.php
+Wrote `C:\Users\user\source\learning\php_practice\my_app_name\src\Model\Entity\Article.php`
+Deleted `C:\Users\user\source\learning\php_practice\my_app_name\src\Model\Entity\.gitkeep`
+
+Baking test fixture for Articles...
+
+Creating file C:\Users\user\source\learning\php_practice\my_app_name\tests\Fixture\ArticlesFixture.php
+Wrote `C:\Users\user\source\learning\php_practice\my_app_name\tests\Fixture\ArticlesFixture.php`
+Deleted `C:\Users\user\source\learning\php_practice\my_app_name\tests\Fixture\.gitkeep`
+Bake is detecting possible fixtures...
+
+Baking test case for App\Model\Table\ArticlesTable ...
+
+Creating file C:\Users\user\source\learning\php_practice\my_app_name\tests\TestCase\Model\Table\ArticlesTableTest.php
+Wrote `C:\Users\user\source\learning\php_practice\my_app_name\tests\TestCase\Model\Table\ArticlesTableTest.php`
+Done
+One moment while associations are detected.
+Bake cannot generate associations for composite primary keys at this time.
+
+Baking table class for ArticlesTags...
+```
+
+#### **CakePHPの場合**
+- `ArticlesTable` クラスは、`articles` テーブルを管理するためのクラス。
+- **規約（Convention over Configuration）** に従い、クラス名とテーブル名が自動的にマッピングされます。
+  - クラス名 `ArticlesTable` → テーブル名 `articles`
+- CakePHPの`Table`クラスを継承することで、データベースの操作が簡単に行えます。
+
+#### **DRFの場合**
+DRFでは、Djangoのモデル（`Model`）を定義することで同様のテーブル操作を行います。
+
+
+### **3. 規約と構成の違い**
+
+| **項目**                 | **CakePHP**                               | **Django（DRF）**                    |
+|--------------------------|------------------------------------------|-------------------------------------|
+| **モデル定義**           | `Table`クラスを使用                      | `Model`クラスを使用                 |
+| **タイムスタンプ管理**    | ビヘイビアで管理（`Timestamp`）           | フィールド設定（`auto_now_add`など）|
+| **フィールド定義**       | SQLスキーマに従いテーブル操作            | モデル内で直接定義                 |
+| **規約と設定**           | 規約優先（クラス名とテーブル名をマッピング） | 設定重視（明示的にモデルを定義）    |
+
+
+
+CakePHPの`bin/cake bake model all`は、**Django REST Framework (DRF)** における**モデル定義とシリアライザの自動生成**に相当します。ただし、CakePHPの`bake`コマンドは、さらに広範囲な機能をカバーします。
+
+
+| **項目**               | **CakePHP (bake)**                     | **Django REST Framework**          |
+|------------------------|----------------------------------------|-------------------------------------|
+| **モデル生成**         | `bin/cake bake model all` コマンドで自動生成 | `models.py` に手動記述。または`inspectdb` |
+| **シリアライザ生成**   | `Entity`クラスが自動生成される         | シリアライザは手動で記述 (`serializers.py`) |
+| **リレーション定義**   | `Table`クラスで定義                    | モデル内で`ForeignKey`や`ManyToManyField` |
+| **対応する自動化範囲** | データベーススキーマからモデルと関連クラスの生成 | `inspectdb` + 手動でシリアライザ作成 |
+
+
+CakePHPは`bake`コマンドで多数のファイルを一気に生成できるのが強みで、開発の初期段階で非常に効率的。一方で、DRFは自由度が高く、個別に調整しやすい設計が特徴
+
