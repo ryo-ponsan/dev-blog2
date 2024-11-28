@@ -190,15 +190,45 @@ CakePHPは`bake`コマンドで多数のファイルを一気に生成できる�
 | **ヘルパー**                 | **Djangoテンプレートタグや関数**        | フォームやリンクの生成、HTMLタグの簡素化など。                                                 |
 
 
+### **3. HTML返却とAPI返却の違い**
 
-### **5. CakePHPの特徴**
-- **テンプレート重視**: ビューとしてHTMLを生成するのが主流（JSONレスポンスも可能）。
-- **ヘルパーの利用**: フォームやリンク生成のヘルパーが豊富。
-- **規約重視**: 命名規則に従うことで設定を最小化。
+| **項目**              | **HTML返却 (MVC従来構成)**                                  | **API返却 (JSON構成)**                       |
+|----------------------|--------------------------------------------------------|---------------------------------------------|
+| **リクエスト例**      | `http://example.com/articles/index`                   | `http://example.com/api/articles`           |
+| **ルーティング**       | `ArticlesController@index`                           | `ArticlesController@index`                 |
+| **レスポンス内容**     | HTML（テンプレートで生成）                             | JSONデータ（直接生成）                       |
+| **ビュー (View)**      | `templates/Articles/index.php`でHTML生成             | **不要**（`_serialize`でデータを直返し）      |
+| **フロントエンド処理** | サーバーからHTMLを受け取り、直接表示                   | フロントエンド（例: React）がJSONを処理してUI更新 |
+| **例外処理**          | CakePHPがテンプレートを探せない場合にエラーページを表示 | APIレスポンスにHTTPステータスコードでエラーを返す |
 
 ---
 
-### **6. DRFの特徴**
-- **API設計特化**: JSON形式のレスポンスを基本とし、テンプレートは扱わない。
-- **自由度が高い**: ビューやシリアライザのカスタマイズが容易。
+### **4.処理の流れを図示**
+
+#### **HTML返却（従来MVC）**
+```
+リクエスト: GET /articles/index
+↓
+ルーティング: routes.php → ArticlesController@index
+↓
+コントローラー: ArticlesControllerがモデルからデータ取得
+↓
+ビュー: templates/Articles/index.phpでHTML生成
+↓
+レスポンス: HTMLを返却
+```
+
+#### **API返却**
+```
+リクエスト: GET /api/articles
+↓
+ルーティング: routes.php → ArticlesController@index
+↓
+コントローラー: ArticlesControllerがモデルからデータ取得
+↓
+JSON生成: _serializeオプションでJSONレスポンス生成
+↓
+レスポンス: JSONを返却
+```
+
 
