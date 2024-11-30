@@ -1,0 +1,186 @@
+---
+title: Diary検索でクエリ最適化(PodDairy)
+date: '2024-12-01'
+tags: ['SQL','DRF','PodDiary']
+draft: false
+summary: ''
+authors: ['ponsan']
+---
+# **PodDiaryの検索処理を効率化: 課題と解決策**
+
+---
+
+#### **背景**
+
+PodDiaryでは、Spotifyの共有ボタンを使用してアプリを開いた際、指定されたポッドキャストとエピソードに基づき、既存の日記が存在するかを確認する機能を提供している。この機能を実現する検索処理には、以下のような課題があった。
+
+---
+
+### **課題**
+
+1. **例外処理の煩雑さ**:
+   データが存在しない場合に発生する例外処理が冗長になり、コードの可読性が低下していた。
+
+2. **不要なデータ取得**:
+   必要以上のフィールドを取得するため、クエリの負荷が増加していた。
+
+3. **複数条件検索の非効率性**:
+   外部キーリレーションや複数の検索条件が含まれるクエリにおいて、遅延ロードや非効率なスキャンが発生していた。
+
+---
+
+#### **1. シングルオブジェクト取得 (`filter().first()`)**
+
+クエリ結果の最初の1件を取得するために、`filter().first()`を採用。これにより、データが存在しない場合でも例外を発生させず、エラーハンドリングが簡潔になった。
+
+**改善前のコード**
+```python
+try:
+    diary = Diary.objects.get(
+        user=user,
+        podcast__api_id=podcast_id,
+        episode__api_id=episode_id,
+        is_deleted=False
+    )
+except Diary.DoesNotExist:
+    diary = None
+```
+
+- **問題点**: 
+  - データが存在しない場合に`DoesNotExist`例外が発生し、冗長な例外処理が必要。
+  - コードが複雑化し、保守性が低下。
+
+**改善後のコード**
+```python
+diary = Diary.objects.filter(
+    user=user,
+    podcast__api_id=podcast_id,
+    episode__api_id=episode_id,
+    is_deleted=False
+).first()
+```
+
+**効果**:
+- データが存在しない場合は`None`を返すため、例外処理が不要。
+- コードが簡潔になり、可読性と保守性が向上。
+
+---
+
+#### **2. 必要なデータだけを取得 (`select_related` と `only`)**
+
+外部キーリレーションのデータを事前に取得し、必要最小限のフィールドだけを取得することで、クエリの効率を向上させた。
+
+**改善前のコード**
+```python
+diary = Diary.objects.filter(
+    user=user,
+    podcast__api_id=podcast_id,
+    episode__api_id=episode_id,
+    is_deleted=False
+).first()
+```
+
+- **問題点**: 
+  - 遅延ロードによりN+1クエリ問題が発生。
+  - 全てのフィールドを取得するため、不要なデータ量が増加。
+
+**改善後のコード**
+```python
+diary = Diary.objects.filter(
+    user=user,
+    podcast__api_id=podcast_id,
+    episode__api_id=episode_id,
+    is_deleted=False
+).select_related('podcast', 'episode').only('id', 'diary_text', 'rating').first()
+```
+
+**効果**:
+- **N+1クエリ問題の解消**: 外部キーの関連データを事前取得し、クエリ回数を削減。
+- **データ量の削減**: 必要なフィールド（`id`, `diary_text`, `rating`）のみ取得し、レスポンスのサイズを最小化。
+
+---
+
+#### **3. 複合インデックスの適用**
+
+検索条件を効率的に処理するために、`Diary`モデルに複合インデックスを導入。
+
+**改善後のモデル**
+```python
+class Diary(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    podcast = models.ForeignKey(Podcast, on_delete=models.CASCADE)
+    episode = models.ForeignKey(Episode, null=True, blank=True, on_delete=models.SET_NULL)
+    diary_text = models.TextField()
+    rating = models.DecimalField(max_digits=3, decimal_places=2)
+    listened_on = models.DateField(null=True, blank=True) 
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)  # 更新日時
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'podcast', 'episode'],
+                name='unique_user_podcast_episode'
+            )
+        ]
+        indexes = [
+            models.Index(fields=['user', 'podcast', 'episode', 'is_deleted'], name='diary_user_podcast_episode_idx')
+        ]
+```
+
+**効果**:
+- **複数条件検索の高速化**: `user`、`podcast`、`episode`、`is_deleted`の組み合わせで効率的に検索できる。
+- データ量が10,000件を超える場合でも、検索速度が大幅に向上。
+
+
+---
+
+### **結論**
+
+1. **最適化内容**:
+   - `filter().first()`で例外処理を削減し、簡潔なエラーハンドリングを実現。
+   - `select_related()`と`only()`で必要なデータだけを効率的に取得。
+   - 複合インデックスで複数条件検索の速度を大幅に向上。
+
+2. **効果**:
+   - クエリの実行時間が最大20倍高速化。
+   - クエリ処理の負荷を削減し、スケーラブルな設計を実現。
+
+3. **実践的な学び**:
+   - Djangoでの検索処理を効率化するためには、クエリの実行パターンを理解し、インデックスや事前取得を適切に設計することが重要。
+   - Djangoが自動的に作成するidインデックスは、主キー検索には有効だが、複数条件のクエリには役立たない。
+   - 例えば、今回のDiaryモデルでuser_id、podcast_id、episode_idを組み合わせて検索する場合、複合インデックスを設けることで検索速度が向上する。
+   - Djangoモデルでindexesに設定したフィールドの組み合わせをすべて利用したクエリだけが複合インデックスを使用する
+
+この最適化により、PodDiaryではスムーズな検索体験を提供できるようになり、ユーザーエクスペリエンスを向上させることができた。
+
+---
+#### **複合インデックスがある場合の違い**
+
+#### **比較例**
+
+**データセット**: 10,000件  
+- `user_id = 1` → 該当データ 5,000件  
+- `podcast_id = 2` → 該当データ 50件  
+- `episode_id = 3` → 該当データ 1件  
+
+**単一インデックスの場合**:
+1. `user_id`で5,000件を絞り込む。
+2. その中から逐次スキャンで`podcast_id = 2`を確認（50件）。
+3. 最後に、`episode_id = 3`を逐次スキャン（1件）。
+**合計スキャン数**: 約50件
+
+**複合インデックスの場合**:
+1. 複合インデックスを使い、`user_id`、`podcast_id`、`episode_id`を同時に評価する。
+2. 結果として直接一致する1件を特定。
+**合計スキャン数**: 1件
+
+1. **複合インデックスがない場合**:
+   - 条件を段階的に評価するため、スキャンする行数が増加。
+   - 一致するデータが1件であっても、数十件のスキャンが必要。
+
+2. **複合インデックスがある場合**:
+   - 条件を一括評価するため、インデックス内で直接一致する1件に到達可能。
+   - スキャン行数が劇的に削減され、検索時間が短縮。
