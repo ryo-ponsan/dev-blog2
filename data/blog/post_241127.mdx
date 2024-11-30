@@ -12,6 +12,74 @@ authors: ['ponsan']
 - DRFはフロント、バックが明確に分かれる設計。APIから取得したデータを表示し、ユーザーの操作を処理。フロントエンドの変更がバックエンドに影響を与えない。
 - CakePHPは、バックエンドとフロントエンドを同じシステムで管理が基本。一応、APIルーティングの設定はできて、DRFと同じ運用はできる。
 - フルスタックフレームワークを使ったことなかったため、慣れが必要。フロントとバックを同時に開発できるのは、開発スピードの観点で優位か。
+- CakePHPでは、アプリケーションロジックをできるだけモデル層に配置し、コントローラーのアクションを簡潔に保つという設計方針がある。ファインダーメソッドをテーブル（モデル）に書く。
+- コントローラーは本来、リクエストを受け取り、適切なモデルを呼び出し、ビューに渡すという責務に限定するべき
+- CakePHPの設計原則では、モデル（テーブルやエンティティ）にビジネスロジックを集中させ、コントローラーをシンプルに保つことが推奨
+- 「Fat Models, Skinny Controllers」:モデル（テーブル）がビジネスロジックやデータ操作の責任を持つ。コントローラーはそのロジックを呼び出し、結果をビューに渡すだけにする。
+
+### **CakePHPの設計思想**
+- **Fat Models, Skinny Controllers**（太いモデル、薄いコントローラー）
+  - ビジネスロジックやデータ処理をモデル（テーブル）に集中させる。
+  - コントローラーは、リクエストを受け取り、モデルを呼び出し、ビューに渡すだけの責務。
+
+---
+
+### **Django REST Frameworkの設計思想**
+- **Thin Models, Fat Views**（薄いモデル、太いビュー）
+  - Djangoではモデルはデータ定義に留める。
+  - ビジネスロジックやデータ処理は、ビューやシリアライザで記述。
+  - DRFでは、ビューセットやシリアライザがCakePHPのモデルのような役割を一部引き継ぐ。
+
+
+### **CakePHPのファイル構成と責務**
+
+| **ファイル/ディレクトリ**    | **役割**                                                                                     | **具体例**                                                                                                                                       |
+|----------------------------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| **src/Model/Table**         | ビジネスロジックとデータ処理を記述。テーブルごとの関連付けやファインダーメソッドを定義。            | `ArticlesTable.php` で `findTagged` を定義し、タグで記事を検索するロジックを記述。                                                                 |
+| **src/Controller**          | リクエストを受け取り、適切なモデルやビューを呼び出す。ロジックはモデル（テーブル）に委譲。        | `ArticlesController.php` で `tags()` アクションを定義し、`findTagged` を呼び出して結果をビューに渡す。                                             |
+| **templates**               | ビューのテンプレートを配置。データの表示に集中。                                               | `templates/Articles/tags.php` で、`$articles` をループして記事一覧を表示。                                                                        |
+| **config/routes.php**       | URLとコントローラー・アクションのマッピング。                                                 | `/articles/tagged/*` を `ArticlesController::tags()` にマッピング。                                                                               |
+
+---
+
+### **Django REST Frameworkのファイル構成と責務**
+
+| **ファイル/ディレクトリ**    | **役割**                                                                                     | **具体例**                                                                                                                                       |
+|----------------------------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| **models.py**              | データ構造を定義。データ処理はほとんど記述しない。                                             | `Article` モデルに `ManyToManyField(Tag)` を定義し、記事とタグを多対多で関連付け。                                                                |
+| **serializers.py**         | データの整形（JSON化）や入力検証を担当。                                                      | `ArticleSerializer` にタグを含む記事のデータをシリアライズ。                                                                                     |
+| **views.py**               | ビジネスロジックとデータ処理を記述。リクエストを処理し、シリアライザやクエリセットを利用。         | `ArticleByTagsView` を定義し、タグで記事を検索して結果を返す。                                                                                    |
+| **urls.py**                | URLとビューのマッピング。                                                                     | `/articles/tagged/<tags>` を `ArticleByTagsView` にマッピング。                                                                                   |
+
+
+---
+
+## **4. CakePHPとDRFの比較表**
+
+| **項目**                  | **CakePHP**                                                                                     | **Django REST Framework (DRF)**                                                     |
+|--------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| **データ定義**             | モデル（`ArticlesTable.php`）に関連付けやカスタムクエリを記述。                                     | モデル（`models.py`）はデータ構造の定義のみ。                                         |
+| **データ処理**             | モデル（テーブル）内のファインダーメソッドでデータ処理を実装。                                      | ビュー（`views.py`）でクエリロジックを実装。                                          |
+| **JSONレスポンス生成**      | ビューではなくテンプレートを使用しHTML出力がメイン。JSONは明示的に設定が必要。                        | シリアライザでJSONレスポンスを生成。REST API向けに最適化。                              |
+| **ルートの定義**            | `routes.php` でURLとコントローラーアクションをマッピング。                                          | `urls.py` でURLとビューをマッピング。                                                |
+| **利便性**                 | 自動化（`Bake`）でファイル構成を迅速に生成可能。                                                   | 手動で構成を記述するが柔軟性が高い。                                                  |
+| **設計思想**               | Fat Models, Skinny Controllers。モデルが中心。                                                    | Thin Models, Fat Views。ビューが中心。                                               |
+
+---
+
+- **CakePHP**:
+  - **モデル中心**でロジックを再利用可能。
+  - `Bake` による迅速なスケルトン生成が可能。
+  - テンプレートエンジンを使用しHTMLレンダリングに適している。
+
+- **Django REST Framework**:
+  - **ビュー中心**でREST API開発に最適。
+  - シリアライザによる柔軟なJSONデータ処理。
+  - APIエコシステム全体を簡単に構築可能。
+
+---
+
+チュートリアル開始
 
 # composerインストール
 - URL
@@ -232,3 +300,114 @@ JSON生成: _serializeオプションでJSONレスポンス生成
 ```
 
 
+## コントローラーtutorial
+
+- 注意点、特定のURLを取得できるように、コントローラとアクションの命名はせず、[CakePHPの規約](https://book.cakephp.org/5/ja/intro/conventions.html)に従うこと
+- クラス名: 複数形 + パスカルケース + Controller
+- ファイル名とクラス名、データベース、モデル、ビュー、プラグインそれぞれ
+
+```
+データベース: articles テーブル
+Controller: ArticlesController（src/Controller/ArticlesController.php）
+Table クラス: ArticlesTable（src/Model/Table/ArticlesTable.php）
+Entity クラス: Article（src/Model/Entity/Article.php）
+ビュー: templates/Articles/index.php
+URL例: http://example.com/articles → ArticlesController::index() にマップ。
+```
+
+### 作成
+- CakePHP は、 コントローラーのアクションが完了した後、自動的にテンプレートを描画
+
+
+# テンプレート
+- CakePHP のテンプレートファイルは、 templates の中で 対応するコントローラーの名前をつけたフォルダーの中に保存。 今回の場合、 'Articles' という名前のフォルダーを作成する必要があり
+- $this->Html->link CAKEPHPのヘルパー関数でリンク生成
+
+
+### xamppの設定変更
+- httpd.confを修正する
+- アプリの場所をApacheに教える
+- DocumentRoot（ウェブサイトの入口）を、CakePHPのwebrootフォルダに変更
+- Apacheに「このフォルダの中身をウェブで公開してOK」と設定
+- CakePHPでは、URLを自由にデザインできる「ルーティング」という仕組み.Apacheの「mod_rewrite」という機能が必要.
+- 「どの窓口でウェブサイトを提供するか」を決めるので、Apcheサーバーのポートを確認
+- ブラウザで以下のURLにアクセスすれば、CakePHPのアプリが表示`http://localhost:8080`
+- CakePHPアプリは「家」,Apacheはその家に手紙を届ける「郵便配達員」
+
+```bash
+# 元の設定
+DocumentRoot "C:/xampp/htdocs"
+<Directory "C:/xampp/htdocs">
+
+# 修正後の設定
+DocumentRoot "C:/Users/user/source/learning/php_practice/my_app_name/webroot"
+<Directory "C:/Users/user/source/learning/php_practice/my_app_name/webroot">
+
+# 修正箇所を確認して有効化
+LoadModule rewrite_module modules/mod_rewrite.so
+```
+
+## view テンプレート作成
+- templates/Articles/view.php
+- レスポンスで返すHTML
+- $this->Articles->find() を使うことで、記事の検索条件やソート順を柔軟に設定可能
+
+## POSTリクエスト処理(addメソッドをコントローラに追加)
+-  CakePHP のリクエストは、 $this->request を使用してアクセス可能なリクエストオブジェクト
+- POST データは、 $this->request->getData() で利用可能
+    - データを保存するために、まず POST データを Article エンティティーに 「変換 (marshal)」
+    - 新しい記事を保存した後、セッションにメッセージをセットするために FlashComponent の success() メソッドを使用
+    - レイアウトの中に、フラッシュメッセージを表示し、対応するセッション変数をクリア
+    - パラメーター ['action' => 'index'] は、例えば ArticlesController の index アクションの場合、 URL /articles に変換
+
+## POSTのテンプレート
+- `add.php`を追加
+- `edit.php`を追加
+
+## バリデーション
+- Table.phpに追加すること
+
+# 複数の作成者が、CMSで作業できるように。
+
+
+- **Bake** はCakePHPのコード生成ツールで、モデル、コントローラー、テンプレートを迅速に生成するためのもの。
+- **Django/DRF** では、モデルやビューセットを手動で記述するが、`makemigrations` や `DefaultRouter` によって効率化できる。
+
+
+bakeコマンド
+```
+cd /path/to/our/app
+
+bin/cake bake model users
+bin/cake bake controller users
+bin/cake bake template users
+```
+
+これらの3つのコマンドは次を生成。
+
+- テーブル、エンティティー、フィクスチャーファイル
+- コントローラー
+- CRUD テンプレート
+- 生成された各クラスのテストケース
+
+
+### **BakeとDjango/DRFの違い**
+
+| **機能**               | **CakePHP Bake**                          | **Django/DRF**                            |
+|-----------------------|-----------------------------------------|------------------------------------------|
+| **モデル生成**          | `bin/cake bake model users`              | モデルを手動で定義 + `makemigrations` + `migrate` |
+| **コントローラー生成**  | `bin/cake bake controller users`         | `ViewSet` を手動で定義                    |
+| **ビュー生成**          | `bin/cake bake template users`          | DRFでは自動的にJSON形式のレスポンスを提供 |
+| **ルーティング**        | 自動で生成される                        | `DefaultRouter` を使用して簡単に設定      |
+| **CLIツール**           | 自動生成に特化（Bake）                   | CLIでマイグレーションや管理が可能（`manage.py`）|
+
+---
+
+# タグ追加
+- [URL](https://book.cakephp.org/5/ja/tutorials-and-examples/cms/tags-and-users.html)
+- 
+
+## タグによる検索
+- ルートに追加`config/routes.php`
+- タグを使って記事を検索できる機能を実装
+- 特定のタグが付けられた記事を検索するための ルート（URLとアクションのマッピング）、コントローラーのアクション、および検索用の ファインダーメソッド を作成
