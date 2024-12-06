@@ -1,0 +1,128 @@
+---
+title: 
+date: '2024-12-05'
+tags: ['CS']
+draft: true
+summary: ''
+authors: ['ponsan']
+---
+
+計算量の説明をする機会があったため、振り返り用の備忘録
+
+- [ハッシュマップ](#1.ハッシュマップを利用した例)
+- 
+
+# 1.ハッシュマップを利用した例
+- 「すでに見た数」がすぐに取り出せる仕組み
+- 「リストの中から2つの数を足してターゲットになるペアを探す」を例にとる
+- **補数**を考えることで、「組み合わせの全探索」をする必要がなくなり、探す数が明確になる。
+- **ハッシュマップ**を使うことで、「補数がすでに見つかっているか」を高速に確認できる。
+- 全探索の場合、計算量は \(O(n^2)\) ですが、この方法では \(O(n)\) で解決できる。
+
+
+例：
+```plaintext
+リスト: [1, 3, 2, 4, 5]
+ターゲット: 8
+```
+ペアの候補は:
+- `3 + 5 = 8` → **正解**。
+- 他はすべて不正解。
+
+これを効率よく見つける方法を考える
+
+### **普通の方法（全探索）**
+一番直感的な方法は、リストの中からすべてのペアを試すこと。
+
+例:
+- `1 + 3 = 4` → 不正解
+- `1 + 2 = 3` → 不正解
+- `3 + 5 = 8` → 正解
+
+これは「すべての組み合わせを試す」ので時間がかかる（計算量は \(O(n^2)\)、リストが長くなると急激に遅くなる）。
+
+---
+
+### **賢いやり方: 補数を使う**
+- 「補数」を使うと、一部の計算を省略可能。
+- 補数とは、「ターゲット値から現在の数を引いた値」。
+
+例：
+- ターゲットが `8` のとき、
+  - `1` の補数は `8 - 1 = 7`
+  - `3` の補数は `8 - 3 = 5`
+
+つまり、ある数とその補数が見つかれば答えがわかる。
+
+#### **ハッシュマップの特徴**
+- ハッシュマップ（Pythonでは辞書 `dict`）は、「キーと値のセット」を保存し、キーを使えば値を一瞬で取り出せる（計算量 \(O(1)\)）。
+- 「すでに見た数」を保存しておくのにピッタリ。
+
+
+#### 入力例：
+リスト: `[1, 3, 2, 4, 5]`
+ターゲット: `8`
+
+#### 手順：
+1. 最初の数を見ます: `1`
+   - 補数は `8 - 1 = 7`
+   - ハッシュマップにまだ `7` はない → `1` を記録して次へ。
+
+2. 次の数を見ます: `3`
+   - 補数は `8 - 3 = 5`
+   - ハッシュマップにまだ `5` はない → `3` を記録して次へ。
+
+3. 次の数を見ます: `2`
+   - 補数は `8 - 2 = 6`
+   - ハッシュマップにまだ `6` はない → `2` を記録して次へ。
+
+4. 次の数を見ます: `4`
+   - 補数は `8 - 4 = 4`
+   - ハッシュマップにまだ `4` はない → `4` を記録して次へ。
+
+5. 次の数を見ます: `5`
+   - 補数は `8 - 5 = 3`
+   - **ハッシュマップに `3` がある！**
+     → 答えは `3` と `5` のペア。
+
+#### ハッシュマップの中身の変化：
+- 見た数を記録していく: `{1: 0, 3: 1, 2: 2, 4: 3, 5: 4}`
+
+
+```python
+def find_indices_hashmap(nums, target):
+    steps = 0  # 計算ステップ数をカウント
+    seen = {}
+    answers = []  # 結果を格納するリスト
+    for i, num in enumerate(nums):
+        steps += 1
+        complement = target - num
+        print(f"Step {steps}: Current number = {num}, Complement = {complement}, Seen = {seen}")
+        
+        if complement in seen:
+            print(f"  -> Complement {complement} found in seen! Adding indices [{seen[complement]}, {i}]")
+            answers.append([seen[complement], i])  # 結果を追加
+        
+        seen[num] = i  # 現在の数値とそのインデックスを記録
+        print(f"  -> Updating seen: {seen}")
+    
+    print(f"Hashmap steps: {steps}")
+    print(f"All answers: {answers}")
+    return answers  # すべての結果を返す
+```
+
+```bash
+Step 1: Current number = 1, Complement = 7, Seen = {}
+  -> Updating seen: {1: 0}
+Step 2: Current number = 3, Complement = 5, Seen = {1: 0}
+  -> Updating seen: {1: 0, 3: 1}
+Step 3: Current number = 2, Complement = 6, Seen = {1: 0, 3: 1}
+  -> Updating seen: {1: 0, 3: 1, 2: 2}
+Step 4: Current number = 4, Complement = 4, Seen = {1: 0, 3: 1, 2: 2}
+  -> Updating seen: {1: 0, 3: 1, 2: 2, 4: 3}
+Step 5: Current number = 5, Complement = 3, Seen = {1: 0, 3: 1, 2: 2, 4: 3}
+  -> Complement 3 found in seen! Adding indices [1, 4]
+  -> Updating seen: {1: 0, 3: 1, 2: 2, 4: 3, 5: 4}
+Hashmap steps: 5
+All answers: [[1, 4]]
+```

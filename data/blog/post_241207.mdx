@@ -1,0 +1,245 @@
+---
+title: pytestの基本
+date: '2024-12-07'
+tags: ['CS']
+draft: false
+summary: ''
+authors: ['ponsan']
+---
+
+`pytest` は Python で簡単かつ強力なテストを実行するためのライブラリ。
+テスト自動化するために便利だが、使ってこなかったため、キャッチアップ備忘録。
+
+---
+
+### **1. テストの基本的な書き方**
+`pytest` では、関数名が `test_` で始まる関数がテストとして認識される。
+
+#### ファイル構成例
+```plaintext
+project/
+├── main.py          # テスト対象のコード
+└── test_main.py     # テストコード
+```
+
+#### テスト対象コード: `main.py`
+```python
+# main.py
+def add(a, b):
+    return a + b
+```
+
+#### テストコード: `test_main.py`
+```python
+# test_main.py
+from main import add
+
+def test_add():
+    assert add(2, 3) == 5
+    assert add(-1, 1) == 0
+    assert add(0, 0) == 0
+```
+
+---
+
+### **テストの実行方法**
+プロジェクトのルートディレクトリで次のコマンドを実行。
+
+```bash
+pytest
+```
+
+`pytest` は自動的に `test_` で始まるファイルや関数を探して実行する。
+
+#### 結果の例
+```plaintext
+============================= test session starts =============================
+collected 1 item
+
+test_main.py .                                                         [100%]
+
+============================== 1 passed in 0.01s ==============================
+```
+
+---
+
+### **詳細な出力**
+詳細な出力を表示するには `-v` オプションを使用します。
+
+```bash
+pytest -v
+```
+
+出力例:
+```plaintext
+test_main.py::test_add PASSED                                           [100%]
+```
+
+---
+
+### **エラーがある場合の出力**
+`assert` が失敗すると、エラー内容が出力されます。
+
+#### 例
+`main.py` にバグがある場合:
+```python
+# main.py
+def add(a, b):
+    return a - b  # バグ
+```
+
+実行結果:
+```plaintext
+============================= test session starts =============================
+collected 1 item
+
+test_main.py F                                                         [100%]
+
+=================================== FAILURES ==================================
+__________________________________ test_add ___________________________________
+
+    def test_add():
+>       assert add(2, 3) == 5
+E       assert -1 == 5
+E        +  where -1 = add(2, 3)
+
+test_main.py:5: AssertionError
+=========================== short test summary info ===========================
+FAILED test_main.py::test_add - assert -1 == 5
+============================== 1 failed in 0.01s ==============================
+```
+
+---
+
+### **テストのグループ化**
+1つのファイル内に複数のテスト関数を定義できます。
+
+#### 例
+```python
+# test_main.py
+from main import add
+
+def test_add_positive():
+    assert add(2, 3) == 5
+
+def test_add_negative():
+    assert add(-1, -2) == -3
+
+def test_add_zero():
+    assert add(0, 0) == 0
+```
+
+---
+
+### **パラメータ化**
+同じ関数を異なるデータセットでテストしたい場合、`pytest.mark.parametrize` を使用。
+
+#### 例
+```python
+# test_main.py
+import pytest
+from main import add
+
+@pytest.mark.parametrize("a, b, expected", [
+    (2, 3, 5),
+    (0, 0, 0),
+    (-1, -1, -2),
+])
+def test_add(a, b, expected):
+    assert add(a, b) == expected
+```
+
+---
+
+### **例外処理のテスト**
+特定の例外が発生するか確認する場合、`pytest.raises` を使用。
+
+#### 例
+```python
+# main.py
+def divide(a, b):
+    if b == 0:
+        raise ValueError("Cannot divide by zero!")
+    return a / b
+```
+
+```python
+# test_main.py
+import pytest
+from main import divide
+
+def test_divide_by_zero():
+    with pytest.raises(ValueError, match="Cannot divide by zero!"):
+        divide(10, 0)
+```
+
+---
+
+### **共通のセットアップ: `fixture`**
+テストの準備作業を共通化する場合、`pytest.fixture` を使用。
+
+#### 例
+```python
+# test_main.py
+import pytest
+from main import add
+
+@pytest.fixture
+def sample_data():
+    return (2, 3)
+
+def test_add(sample_data):
+    a, b = sample_data
+    assert add(a, b) == 5
+```
+
+---
+
+### **実行時のオプション**
+- **特定のテストファイルを実行**:
+  ```bash
+  pytest test_main.py
+  ```
+
+- **特定のテスト関数を実行**:
+  ```bash
+  pytest test_main.py::test_add
+  ```
+
+- **エラーが発生した時点で停止**:
+  ```bash
+  pytest -x
+  ```
+
+---
+
+### **テストコードの保存場所**
+一般的なプロジェクト構成：
+```plaintext
+project/
+├── src/
+│   └── main.py       # 実際のコード
+├── tests/
+│   ├── test_main.py  # テストコード
+```
+
+---
+
+### **pytest.ini の設定**
+必要に応じて、`pytest.ini` ファイルで設定をカスタマイズ可。
+
+#### 例
+```ini
+[pytest]
+pythonpath = src
+```
+
+---
+
+### **まとめ**
+- **基本構文**: テスト関数は `test_` で始める。
+- **実行**: `pytest` コマンドで実行。
+- **詳細な機能**: `fixture`、`parametrize`、例外処理など。
+- **テスト構成**: プロジェクト規模に応じてフォルダを整理。
+
+これを基に、プロジェクト全体の品質を効率的にテスト可能。
