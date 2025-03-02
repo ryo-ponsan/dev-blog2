@@ -4,7 +4,8 @@ import headerNavLinks from '@/data/headerNavLinks'
 import Link from './Link'
 import MobileNav from './MobileNav'
 import ThemeSwitch from './ThemeSwitch'
-import Typical from 'react-typical'
+// import Typical from 'react-typical'
+import { TypeAnimation } from 'react-type-animation'
 
 const Header = () => {
   return (
@@ -17,7 +18,12 @@ const Header = () => {
             </div>
             {typeof siteMetadata.headerTitle === 'string' ? (
               <div className="h-6 text-2xl font-semibold text-green-500 sm:block">
-                <Typical steps={[siteMetadata.headerTitle, 100]} loop={1} wrapper="p" />
+                <TypeAnimation
+                  sequence={['Hello', 1000, 'Hello world!', 500]}
+                  wrapper="p"
+                  speed={50}
+                  repeat={Infinity}
+                />
               </div>
             ) : (
               siteMetadata.headerTitle
