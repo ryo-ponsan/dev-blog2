@@ -19,7 +19,7 @@ const Header = () => {
             {typeof siteMetadata.headerTitle === 'string' ? (
               <div className="h-6 text-2xl font-semibold text-green-500 sm:block">
                 <TypeAnimation
-                  sequence={['Hello', 1000, 'Hello world!', 500]}
+                  sequence={['Hello', 1000, 'Hello PonSan!', 500]}
                   wrapper="p"
                   speed={50}
                   repeat={Infinity}
