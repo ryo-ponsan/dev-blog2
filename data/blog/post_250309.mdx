@@ -1,0 +1,175 @@
+---
+title: Gitのブランチ戦略
+date: '2025-03-09'
+tags: ['Git']
+draft: true
+summary: ''
+authors: ['ponsan']
+---
+# Fork したリポジトリを最新の状態に更新する方法
+
+GitHub でリポジトリを Fork すると、オリジナルのリポジトリ（以下「Fork 元」）をコピーして自分のリポジトリ（以下「Fork 先」）として管理できる。しかし、時間が経つと Fork 元のリポジトリが更新され、Fork 先との差分が生じることがある。
+
+本記事では、Fork 元の最新の内容を Fork 先に反映する方法を、`merge` と `rebase` の 2 つの方法で詳しく解説する。
+
+---
+
+## 1. Fork 元のリポジトリをリモートリポジトリとして追加
+
+まず、Fork 元のリポジトリを `upstream` という名前でリモートリポジトリとして登録する。
+
+```sh
+# Fork 元のリポジトリを upstream として追加
+git remote add upstream <Fork元のリポジトリURL>
+```
+
+追加できたかどうかは、以下のコマンドで確認できる。
+
+```sh
+git remote -v
+```
+
+表示例:
+```
+origin    https://github.com/your-username/repository.git (fetch)
+origin    https://github.com/your-username/repository.git (push)
+upstream  https://github.com/original-owner/repository.git (fetch)
+upstream  https://github.com/original-owner/repository.git (push)
+```
+
+これで、Fork 元（upstream）と Fork 先（origin）の両方をリモートリポジトリとして管理できるようになる。
+
+---
+
+## 2. Fork 元の最新の変更を取得
+
+Fork 元の最新の変更をローカルに取得するには、次のコマンドを実行する。
+
+```sh
+git fetch upstream
+```
+
+この操作により、Fork 元の `main` ブランチ（または他のブランチ）の最新の変更がローカルに取得される。
+
+---
+
+## 3. Fork 元の変更を Fork 先に反映する
+
+Fork 元の最新の変更を Fork 先に反映するには、**merge** または **rebase** のどちらかを使用する。
+
+### 🔹 3.1 `merge` を使う方法（安全な方法）
+
+`merge` を使う場合、現在の `main` に Fork 元の変更を統合する。
+
+```sh
+git checkout main  # メインブランチに移動
+git merge upstream/main  # Fork元の変更をマージ
+```
+
+この方法では、Fork 先の `main` に Fork 元の変更が統合される。履歴がそのまま残るため、他の開発者との共同作業でも比較的安全である。
+
+変更をリモートに反映するには、次のコマンドを実行する。
+
+```sh
+git push origin main
+```
+
+#### ⚠️ `merge` で競合（コンフリクト）が発生した場合
+
+`merge` を実行すると、以下のようなメッセージが表示されることがある。
+
+```sh
+Auto-merging src/example.py
+CONFLICT (content): Merge conflict in src/example.py
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+この場合、競合を手動で解決する必要がある。
+
+1. 競合のあるファイルを開く（`git status` で確認可能）。
+2. `<<<<<<< HEAD` と `>>>>>>> upstream/main` で囲まれた部分を適切に修正。
+3. 修正後、競合解決をコミットする。
+
+```sh
+git add src/example.py
+git commit -m "Merge conflict resolved"
+```
+
+4. 再度 `git merge` を試す。
+
+---
+
+### 🔹 3.2 `rebase` を使う方法（履歴をきれいに保つ方法）
+
+`rebase` を使うと、Fork 先の `main` にある変更が Fork 元の `main` の最新の履歴の上に並べ替えられる。
+
+```sh
+git checkout main
+git rebase upstream/main
+```
+
+この操作により、Fork 先で行った変更が **最新の `upstream/main` の履歴の上に適用し直される**。
+
+#### ✅ `rebase` を使う場合の注意点
+
+- 競合（コンフリクト）が発生した場合、手動で修正する必要がある。
+  - 競合解決後、`git rebase --continue` で処理を続行。
+  - `git rebase --abort` で rebase をキャンセル可能。
+- `rebase` 後に `git push origin main` するとエラーが発生する可能性がある。
+  - その場合、次のコマンドで強制プッシュ。
+  ```sh
+  git push --force-with-lease origin main
+  ```
+
+---
+
+## 4. 作業ブランチ（feature-branch）への反映
+
+Fork 先の `main` を最新にしたら、作業ブランチ（例: `feature-branch`）にも変更を反映する必要がある。
+
+### `merge` の場合
+
+```sh
+git checkout feature-branch
+git merge main
+```
+
+### `rebase` の場合
+
+```sh
+git checkout feature-branch
+git rebase main
+```
+
+これで作業ブランチが最新の `main` に追従するようになる。
+
+---
+
+## 5. どの方法を選ぶべきか
+
+| 状況                    | `merge` 推奨 | `rebase` 推奨             |
+| --------------------- | ---------- | ----------------------- |
+| Fork 先の `main` に変更がない | ✅          | ✅                       |
+| `main` に直接変更を加えている    | ❌          | ❌（要注意）                  |
+| チームで開発している            | ✅          | ❌（`rebase` は履歴を書き換えるため） |
+| きれいな履歴を保ちたい           | ❌          | ✅                       |
+
+- **安全に行うなら `merge`**（履歴がそのまま残る）
+- **履歴をきれいに保ちたいなら `rebase`**（ただし `push --force-with-lease` が必要）
+
+---
+
+## 6. まとめ
+
+Fork したリポジトリを最新の状態に更新するには、以下の手順を実施する。
+
+1. **Fork 元のリポジトリを `upstream` として追加**
+2. **Fork 元の最新の変更を取得**（`git fetch upstream`）
+3. **Fork 先のブランチを更新**（`merge` または `rebase` を選択）
+4. **必要なら作業ブランチにも反映**（`merge` or `rebase`）
+
+**安全な方法:** `merge` を使う。
+
+**履歴をきれいにする方法:** `rebase` を使う（ただし慎重に）。
+
+この手順を覚えておけば、Fork したリポジトリを最新の状態に保ち、スムーズな開発を続けられる。
