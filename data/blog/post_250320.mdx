@@ -1,0 +1,186 @@
+---
+title: トレーニング
+date: '2025-03-24'
+tags: ['']
+draft: false
+summary: ''
+authors: ['ponsan']
+---
+
+## 📖 はじめに
+Coldcard を真のコールドウォレットとして使うためのステップバイステップ・トレーニングです。Testnet を用いた安全な実践練習から、万一ハードウェアウォレットを紛失した際の**復元手順**までカバーします。
+
+
+## 🔰 Coldcard 起動直後のフロー
+
+1. **電源ON**（USBケーブルは不要、単体起動）  
+2. **Device PIN** を入力  
+3. 画面に表示される **Anti‑Phishing Code Words** を確認 → 自身の端末であることを検証  
+4. （パスフレーズ設定済みの場合）  
+   - メインメニュー → `Settings` → `Passphrase` → `Edit Phrase`  
+   - パスフレーズを入力 → `Apply`  
+   - 「Passphrase applied」と表示されたら成功  
+
+> ※ パスフレーズ未設定ならそのままメインメニューへ  
+
+---
+
+### 💻 PC環境  
+- Sparrow Wallet（Testnet モード）インストール済み
+
+---
+
+以下、**Coldcard＋Sparrow Wallet（Testnet）を使った「体系的トレーニングメニュー」**を作成しました。各モジュールごとに「目的」「手順概要」「期待される成果」「所要時間（目安）」を示しています。  
+
+---
+
+## 🗂 トレーニング全体概要
+
+| モジュール | 目的 | 手順概要 | 成果物・確認事項 | 所要時間 |
+|-----------|--------|-------------|----------------|----------|
+| ① デバイス起動＆ウォレット確認 | Coldcardが正しく起動し、正しいウォレットがロードされることを習得 | 電源ON → PIN → Anti‑Phishing → Passphrase適用 → Wallet fingerprint確認 | 正しい Wallet ID（Fingerprint）を表示 | 5分 |
+| ② Watch‑Only ウォレット作成 | Sparrow上でColdcardの公開情報のみ管理する設定を体得 | Coldcardから XPUB → Sparrow にインポート | Sparrowにアドレス一覧（Receive/Change）が表示 | 10分 |
+| ③ 受信フロー実践 | Testnetコイン受信〜残高反映を確認 | Coldcard → Receive → Address取得 → Faucet送金 → Sparrowで残高確認 | Sparrow・Coldcard両方で残高一致 | 10分 |
+| ④ PSBT 署名＋送信 | オフライン署名→ブロードキャスト手順を習得 | SparrowでPSBT作成 → microSD経由でColdcard署名 → SparrowでBroadcast | Testnet TXIDを取得しExplorerで確認 | 15分 |
+| ⑤ Change Output確認 | 送金後のChangeアドレス挙動を理解 | 少額送金→Change出力生成→SparrowでChange残高確認 | ChangeアドレスがColdcard生成アドレスである | 10分 |
+| ⑥ Passphrase（隠しウォレット） | パスフレーズ付きウォレットの作成・運用を練習 | ColdcardでEdit Phrase適用→XPUB再インポート→受送金 | Sparrowに隠しウォレットが別表示される | 15分 |
+| ⑦ Seed Recovery Drill | SeedフレーズからColdcardウォレットを再構築できることを検証 | 別ColdcardまたはエミュレータでRecover Wallet実行 | Fingerprint一致 | 20分 |
+| ⑧ エラーパターン検証 | PIN・Passphrase・PSBT誤操作時の挙動確認 | 誤PIN入力／誤Passphrase／改ざんPSBTで署名試行 | 期待通り拒否されること確認 | 10分 |
+| (任意) ⑨ Multisig PSBT | Coldcardをマルチシグ構成の一要素として利用 | Sparrowで2of3マルチシグ作成→Coldcard署名 | 正常にTX完了 | 30分 |
+
+---
+
+## 📋 準備物チェックリスト
+
+- Coldcard本体＋microSD  
+- Sparrow Wallet（Testnetモード）インストール済みPC  
+- インターネット接続（Testnet Faucet・Explorer用）  
+
+---
+# Coldcard + Sparrow Wallet 総合トレーニング＆復元ガイド (Testnet)
+
+## 📖 はじめに
+本教材は Coldcard を真のコールドウォレットとして使うためのステップバイステップ・トレーニングです。Testnet を用いた安全な実践練習から、万一ハードウェアウォレットを紛失した際の**復元手順**までカバーします。
+
+---
+## 📋 前提条件
+- Coldcard 本体＋microSD
+- Sparrow Wallet（Testnet モード）をインストール済みPC
+- インターネット接続（Testnet Faucet、Explorer用）
+- Device PIN、Seed phrase、Anti‑Phishing code words、Passphrase（設定済み）
+
+---
+## 📑 目次
+1. デバイス起動 & ウォレット確認 (5分)
+2. Watch‑Only ウォレット作成 (10分)
+3. 受信フロー実践 (10分)
+4. PSBT 署名 + 送信 (15分)
+5. Change Output 確認 (10分)
+6. Passphrase（隠しウォレット）運用 (15分)
+7. Seed Recovery Drill (20分)
+8. エラーパターン検証 (10分)
+9. Optional: Multisig PSBT (30分)
+10. 🚨 紛失時の復元手順 (最重要)
+
+---
+## 1️⃣ デバイス起動 & ウォレット確認
+### 目的
+Coldcard が正しく起動し、期待するウォレットがロードされることを確認
+
+### 手順
+1. Coldcard に microSD を挿入せず電源ON
+2. Device PIN を入力
+3. 表示された Anti‑Phishing code words を確認 → 自端末であることを検証
+4. Passphrase 設定済みなら：メニュー→Settings→Passphrase→Edit Phrase→入力→Apply
+5. Main Menu → Info → Wallet Fingerprint をメモ
+
+### 確認項目
+- PIN入力後に Anti‑Phishing code words が合致
+- Fingerprint が記録済みと同一
+
+---
+## 2️⃣ Watch‑Only ウォレット作成
+### 目的
+Coldcard の公開情報(XPUB)を Sparrow にインポートし残高確認だけ行う
+
+### 手順
+1. Coldcard Main Menu → Advanced → Export → XPUB (Testnet)
+2. microSD へ保存 → PC に移動
+3. Sparrow → File→New Wallet→Import Coldcard XPUB → Testnet選択
+
+### 成果
+- Sparrow に Receive/Change アドレス一覧が表示される
+
+---
+## 3️⃣ 受信フロー実践
+### 目的
+Testnet コインの受信・残高反映を体得
+
+### 手順
+1. Coldcard → Receive→Show Address→アドレス表示（例: tb1q...）
+2. Testnet Faucet (https://testnet-faucet.mempool.co/) へアドレスを入力→送金依頼
+3. Sparrow→Balances タブで残高確認
+
+---
+## 4️⃣ PSBT 署名 + 送信
+### 目的
+オフライン署名→Broadcast の流れ習得
+
+### 手順
+#### A) Sparrow で PSBT 作成
+- New Transaction→Recipient に任意 Testnet アドレス→Export PSBT
+#### B) Coldcard 署名
+- Coldcard→Sign Transaction→microSD→unsigned.psbt→署名→signed.psbt
+#### C) Sparrow で Broadcast
+- Load PSBT (signed.psbt)→Review→Broadcast→TXID を確認
+
+---
+## 🔟 🚨 紛失時の復元手順 (最重要)
+### 目的
+Seed phrase＋Passphrase からウォレットを完全復元できることを確認
+
+### 必要物
+- 新しい Coldcard または Coldcard Emulator
+- Seed phrase 紙 (正確に記録済み)
+- Passphrase
+- 事前にメモした Wallet Fingerprint
+
+### 手順
+1. 新 Coldcard 起動→Menu→Advanced→Recover Wallet
+2. Seed phrase を入力→Next
+3. Passphrase を入力 (設定済みなら)
+4. 再起動後 Info→Wallet Fingerprint が一致することを確認
+5. Sparrow に XPUB を再インポート→残高・アドレスが一致
+
+### 注意事項
+- Seed phrase は複数コピーで別場所保管
+- Passphrase は覚えやすく、他人に推測されないものを選択
+- 定期的にリカバリードリルを実施して慣れておく
+
+---
+## ✅ この後の推奨練習順序
+①→②→③→④→🔟 を一連で実行し、ウォレット運用と復元フローを完全習得
+
+---
+## 🔄 Sparrow Wallet 再インストール時の対応
+
+### 概要
+Sparrow Wallet は Coldcard の公開情報（XPUB）を使ったウォッチオンリーウォレットです。再インストール時には**Coldcard から XPUB を再取得して再インポート**するだけで、残高・アドレス履歴を完全に復元できます。
+
+### 手順
+1. Sparrow Wallet をアンインストール／新規インストール
+2. Sparrow を起動 → **File → New Wallet → Import** → Coldcard を選択
+3. Coldcard → **Advanced → Export → XPUB (Testnet)** → microSD へ保存
+4. microSD を PC に挿入 → Sparrow のインポート画面で XPUB ファイルを選択
+5. Network を **Testnet** に設定 → Wallet fingerprint とアドレス一覧を確認
+6. 「Balances」タブで残高が表示されることを確認
+
+### 注意点
+- **秘密鍵は Coldcard にのみ存在** → Sparrow の再インストールで秘密鍵漏洩リスクなし
+- Sparrow のウォレット設定ファイル（`.sparrow`）はバックアップ推奨（取引ラベルや設定を保存）
+- Passphrase を変更した場合は、Coldcard から新しい XPUB をエクスポートし、Sparrow 上のウォレットを更新すること
+
+## ✅ この後の推奨練習順序
+①→②→③→④→🔟 を一連で実行し、ウォレット運用と復元フローを完全習得
+
+---
