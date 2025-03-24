@@ -1,9 +1,9 @@
 ---
 title: トレーニング
 date: '2025-03-24'
-tags: ['']
+tags: ['training']
 draft: false
-summary: ''
+summary: 'training'
 authors: ['ponsan']
 ---
 
@@ -170,8 +170,13 @@ Sparrow Wallet は Coldcard の公開情報（XPUB）を使ったウォッチオ
 ### 手順
 1. Sparrow Wallet をアンインストール／新規インストール
 2. Sparrow を起動 → **File → New Wallet → Import** → Coldcard を選択
-3. Coldcard → **Advanced → Export → XPUB (Testnet)** → microSD へ保存
-4. microSD を PC に挿入 → Sparrow のインポート画面で XPUB ファイルを選択
+3. **方法 A: microSD 経由でインポート**
+   - Coldcard → **Advanced → Export → XPUB (Testnet)** → microSD へ保存
+   - microSD を PC に挿入 → Sparrow のインポート画面で XPUB ファイルを選択
+4. **方法 B: USB 直接接続でインポート**
+   - Coldcard を PC に USB‑C ケーブルで接続
+   - Coldcard で PIN を入力 → Anti‑Phishing 確認 → Passphrase 適用（必要時）
+   - Sparrow → File → New Wallet → Import → Coldcard (Device)
 5. Network を **Testnet** に設定 → Wallet fingerprint とアドレス一覧を確認
 6. 「Balances」タブで残高が表示されることを確認
 
@@ -182,5 +187,3 @@ Sparrow Wallet は Coldcard の公開情報（XPUB）を使ったウォッチオ
 
 ## ✅ この後の推奨練習順序
 ①→②→③→④→🔟 を一連で実行し、ウォレット運用と復元フローを完全習得
-
----
