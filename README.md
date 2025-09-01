@@ -80,7 +80,7 @@ package.json（抜粋）
 {
   "scripts": {
     "dev": "cross-env INIT_CWD=$PWD next dev",
-    "build": "cross-env INIT_CWD=$PWD next build && cross-env NODE_OPTIONS='--experimental-json-modules' node -r esbuild-register ./scripts/postbuild.mjs",
+    "build": "cross-env INIT_CWD=$PWD next build && node -r esbuild-register ./scripts/postbuild.mjs",
     "serve": "next start",
     "analyze": "cross-env ANALYZE=true next build",
     "lint": "next lint --fix --dir pages --dir components --dir lib --dir layouts --dir scripts"
@@ -135,4 +135,3 @@ authors: ['default']
 - 改変・運用: ryo-ponsan（https://github.com/ryo-ponsan）
 
 ライセンスは元テーマに準じます（本リポジトリでのライセンス明記が必要なら後日追記します）。
-
