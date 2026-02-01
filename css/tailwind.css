@@ -27,3 +27,68 @@ input:-webkit-autofill,
 input:-webkit-autofill:focus {
   transition: background-color 600000s 0s, color 600000s 0s;
 }
+
+/* Mobile-friendly prose adjustments */
+.prose {
+  @apply text-base leading-relaxed;
+}
+
+@media (min-width: 640px) {
+  .prose {
+    @apply text-lg;
+  }
+}
+
+/* Mobile-friendly code blocks */
+.prose pre {
+  @apply text-sm leading-relaxed overflow-x-auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 640px) {
+  .prose pre {
+    @apply text-base;
+  }
+}
+
+/* Inline code mobile adjustments */
+.prose code:not(pre code) {
+  @apply text-sm break-words;
+  word-break: break-word;
+}
+
+@media (min-width: 640px) {
+  .prose code:not(pre code) {
+    @apply text-base;
+  }
+}
+
+/* Better mobile spacing for headings */
+.prose h1 {
+  @apply text-2xl sm:text-3xl;
+}
+
+.prose h2 {
+  @apply text-xl sm:text-2xl;
+}
+
+.prose h3 {
+  @apply text-lg sm:text-xl;
+}
+
+/* Mobile list spacing */
+.prose ul,
+.prose ol {
+  @apply pl-4 sm:pl-6;
+}
+
+/* Mobile blockquote */
+.prose blockquote {
+  @apply pl-3 sm:pl-4 text-base sm:text-lg;
+}
+
+/* Mobile table scroll */
+.prose table {
+  @apply block overflow-x-auto;
+  -webkit-overflow-scrolling: touch;
+}
