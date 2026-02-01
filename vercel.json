@@ -1,7 +1,2 @@
 {
-  "functions": {
-    "pages/api/**/*.js": { "runtime": "nodejs22.x" },
-    "pages/api/**/*.ts": { "runtime": "nodejs22.x" }
-  }
 }
-
