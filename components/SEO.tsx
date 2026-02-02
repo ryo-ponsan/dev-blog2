@@ -14,7 +14,17 @@ interface CommonSEOProps {
         url: string
       }[]
   twImage: string
+  twImageAlt?: string
   canonicalUrl?: string
+}
+
+// Extract Twitter handle from URL or return as-is if already a handle
+const getTwitterHandle = (twitter: string): string => {
+  if (!twitter) return ''
+  if (twitter.startsWith('@')) return twitter
+  // Extract handle from URL like https://twitter.com/anderson_Gypsy
+  const match = twitter.match(/(?:twitter\.com|x\.com)\/([^/?]+)/)
+  return match ? `@${match[1]}` : twitter
 }
 
 const CommonSEO = ({
@@ -23,9 +33,11 @@ const CommonSEO = ({
   ogType,
   ogImage,
   twImage,
+  twImageAlt,
   canonicalUrl,
 }: CommonSEOProps) => {
   const router = useRouter()
+  const twitterHandle = getTwitterHandle(siteMetadata.twitter)
   return (
     <Head>
       <title>{title}</title>
@@ -36,16 +48,18 @@ const CommonSEO = ({
       <meta property="og:site_name" content={siteMetadata.title} />
       <meta property="og:description" content={description} />
       <meta property="og:title" content={title} />
+      <meta property="og:locale" content={siteMetadata.locale} />
       {Array.isArray(ogImage) ? (
         ogImage.map(({ url }) => <meta property="og:image" content={url} key={url} />)
       ) : (
         <meta property="og:image" content={ogImage} key={ogImage} />
       )}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content={siteMetadata.twitter} />
+      {twitterHandle && <meta name="twitter:site" content={twitterHandle} />}
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={twImage} />
+      {twImageAlt && <meta name="twitter:image:alt" content={twImageAlt} />}
       <link
         rel="canonical"
         href={canonicalUrl ? canonicalUrl : `${siteMetadata.siteUrl}${router.asPath}`}
@@ -167,8 +181,8 @@ export const BlogSEO = ({
     description: summary,
   }
 
-  // const twImageUrl = featuredImages[0].url
-  const twImageUrl = siteMetadata.siteUrl + siteMetadata.socialBanner
+  const twImageUrl = featuredImages[0].url
+  const twImageAlt = `${title} - ${siteMetadata.title}`
 
   return (
     <>
@@ -178,6 +192,7 @@ export const BlogSEO = ({
         ogType="article"
         ogImage={featuredImages}
         twImage={twImageUrl}
+        twImageAlt={twImageAlt}
         canonicalUrl={canonicalUrl}
       />
       <Head>
