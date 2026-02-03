@@ -39,7 +39,7 @@ export default function PostLayout({ content, authorDetails, next, prev, childre
     <SectionContainer>
       <BlogSEO url={`${siteMetadata.siteUrl}/${path}`} authorDetails={authorDetails} {...content} />
       <ScrollTopAndComment />
-      <article>
+      <article className="rounded-2xl border border-white/10 bg-black/50 px-4 py-6 backdrop-blur-md sm:px-6 md:px-8 md:py-8">
         <div className="xl:divide-y xl:divide-gray-200 xl:dark:divide-gray-700">
           <header className="pt-6 xl:pb-6">
             <div className="space-y-1 text-center">

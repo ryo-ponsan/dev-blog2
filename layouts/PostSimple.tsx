@@ -26,7 +26,7 @@ export default function PostLayout({ content, next, prev, children }: LayoutProp
     <SectionContainer>
       <BlogSEO url={`${siteMetadata.siteUrl}/${path}`} {...content} />
       <ScrollTopAndComment />
-      <article>
+      <article className="rounded-2xl border border-white/10 bg-black/50 px-4 py-6 backdrop-blur-md sm:px-6 md:px-8 md:py-8">
         <div>
           <header>
             <div className="space-y-1 border-b border-gray-200 pb-10 text-center dark:border-gray-700">
