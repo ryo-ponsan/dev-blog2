@@ -55,9 +55,7 @@ const LayoutWrapper = ({ children }: Props) => {
         <div className={`${inter.className} relative flex h-screen flex-col justify-between font-sans`}>
           <Header />
           <main className="mb-auto">
-            <div className="rounded-2xl border border-white/10 bg-black/50 px-4 py-6 backdrop-blur-md sm:px-6 md:px-8 md:py-8">
-              {children}
-            </div>
+            {children}
           </main>
           <Footer />
         </div>
