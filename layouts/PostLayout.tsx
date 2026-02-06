@@ -10,6 +10,7 @@ import Image from '@/components/Image'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
 import ScrollTopAndComment from '@/components/ScrollTopAndComment'
+import BitcoinDonation from '@/components/BitcoinDonation'
 
 const editUrl = (path) => `${siteMetadata.siteRepo}/blob/master/data/${path}`
 const discussUrl = (path) =>
@@ -96,6 +97,7 @@ export default function PostLayout({ content, authorDetails, next, prev, childre
             </dl>
             <div className="divide-y divide-gray-200 dark:divide-gray-700 xl:col-span-3 xl:row-span-2 xl:pb-0">
               <div className="prose prose-base sm:prose-lg max-w-none pt-10 pb-8 dark:prose-dark">{children}</div>
+              <BitcoinDonation />
               <div className="pt-6 pb-6 text-sm text-gray-700 dark:text-gray-300">
                 <Link href={discussUrl(path)} rel="nofollow">
                   Discuss on Twitter
