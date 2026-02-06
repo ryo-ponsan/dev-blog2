@@ -16,6 +16,9 @@ const siteMetadata = {
   github: 'https://github.com/ryo-ponsan',
   twitter: 'https://twitter.com/anderson_Gypsy',
   socialBanner: '/static/images/logo.png',
+  // Bitcoin donation addresses (replace with your own)
+  bitcoinAddress: 'bc1qxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+  lightningAddress: 'your-lightning-address@getalby.com',
   // giita: 'https://qiita.com/district_13_bm',
   //facebook: 'https://facebook.com',
   //youtube: 'https://youtube.com',
