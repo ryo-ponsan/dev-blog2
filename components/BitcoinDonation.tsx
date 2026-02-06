@@ -3,6 +3,7 @@ import siteMetadata from '@/data/siteMetadata'
 import BitcoinSvg from '@/components/social-icons/bitcoin.svg'
 import LightningSvg from '@/components/social-icons/lightning.svg'
 import EthereumSvg from '@/components/social-icons/ethereum.svg'
+import SolanaSvg from '@/components/social-icons/solana.svg'
 
 declare global {
   interface Window {
@@ -82,8 +83,9 @@ export default function BitcoinDonation() {
   const btcAddress = siteMetadata.bitcoinAddress
   const lnAddress = siteMetadata.lightningAddress
   const evmAddress = siteMetadata.evmAddress
+  const solAddress = siteMetadata.solanaAddress
 
-  if (!btcAddress && !lnAddress && !evmAddress) return null
+  if (!btcAddress && !lnAddress && !evmAddress && !solAddress) return null
 
   return (
     <div className="py-6">
@@ -98,6 +100,7 @@ export default function BitcoinDonation() {
 
       {isOpen && (
         <div className="mt-4 space-y-4 rounded-lg border border-gray-700 bg-gray-800/50 p-4">
+          {/* Bitcoin On-chain */}
           {btcAddress && (
             <div>
               <div className="mb-1 flex items-center gap-2 text-sm font-medium text-orange-400">
@@ -119,6 +122,7 @@ export default function BitcoinDonation() {
             </div>
           )}
 
+          {/* Lightning Network */}
           {lnAddress && (
             <div>
               <div className="mb-1 flex items-center gap-2 text-sm font-medium text-yellow-400">
@@ -140,14 +144,15 @@ export default function BitcoinDonation() {
             </div>
           )}
 
+          {/* EVM: ETH, USDC, USDT, HYPE */}
           {evmAddress && (
             <div>
               <div className="mb-1 flex items-center gap-2 text-sm font-medium text-blue-400">
                 <EthereumSvg className="h-4 w-4 fill-current" />
-                ETH / Stablecoin (USDC, USDT, DAI)
+                ETH / USDC / USDT / HYPE
               </div>
               <p className="mb-1 text-xs text-gray-500">
-                Ethereum / Polygon / Arbitrum / Base / Optimism
+                Ethereum / Polygon / Arbitrum / Base / Hyperliquid
               </p>
               <div className="flex items-center gap-2">
                 <code className="min-w-0 overflow-x-auto rounded bg-gray-900 px-3 py-2 text-xs text-gray-300">
@@ -155,6 +160,22 @@ export default function BitcoinDonation() {
                 </code>
                 <CopyButton text={evmAddress} />
                 <MetaMaskButton to={evmAddress} />
+              </div>
+            </div>
+          )}
+
+          {/* Solana: SOL */}
+          {solAddress && (
+            <div>
+              <div className="mb-1 flex items-center gap-2 text-sm font-medium text-purple-400">
+                <SolanaSvg className="h-4 w-4 fill-current" />
+                SOL (Solana)
+              </div>
+              <div className="flex items-center gap-2">
+                <code className="min-w-0 overflow-x-auto rounded bg-gray-900 px-3 py-2 text-xs text-gray-300">
+                  {solAddress}
+                </code>
+                <CopyButton text={solAddress} />
               </div>
             </div>
           )}

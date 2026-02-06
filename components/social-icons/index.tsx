@@ -7,6 +7,7 @@ import Twitter from './twitter.svg'
 import Bitcoin from './bitcoin.svg'
 import Lightning from './lightning.svg'
 import Ethereum from './ethereum.svg'
+import Solana from './solana.svg'
 
 // Icons taken from: https://simpleicons.org/
 
@@ -20,6 +21,7 @@ const components = {
   bitcoin: Bitcoin,
   lightning: Lightning,
   ethereum: Ethereum,
+  solana: Solana,
 }
 
 const SocialIcon = ({ kind, href, size = 8 }) => {

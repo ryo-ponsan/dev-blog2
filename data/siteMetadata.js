@@ -19,7 +19,8 @@ const siteMetadata = {
   // Crypto donation addresses (replace with your own)
   bitcoinAddress: 'bc1qxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
   lightningAddress: 'your-lightning-address@getalby.com',
-  evmAddress: '0xYourEVMAddressHere', // USDC, USDT, DAI etc. on Ethereum/Polygon/Arbitrum/Base
+  evmAddress: '0xYourEVMAddressHere', // ETH, USDC, USDT, HYPE on Ethereum/Polygon/Arbitrum/Base/Hyperliquid
+  solanaAddress: 'YourSolanaAddressHere', // SOL on Solana
   // giita: 'https://qiita.com/district_13_bm',
   //facebook: 'https://facebook.com',
   //youtube: 'https://youtube.com',
