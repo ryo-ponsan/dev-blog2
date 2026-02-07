@@ -92,3 +92,24 @@ input:-webkit-autofill:focus {
   @apply block overflow-x-auto;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Hide Google Translate default UI */
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+.goog-te-gadget {
+  font-size: 0 !important;
+}
+
+.skiptranslate {
+  display: none !important;
+}
+
+#google_translate_element {
+  display: none !important;
+}
