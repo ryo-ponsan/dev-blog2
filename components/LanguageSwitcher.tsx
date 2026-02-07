@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
 
 declare global {
   interface Window {
@@ -8,10 +9,28 @@ declare global {
   }
 }
 
+/**
+ * Trigger Google Translate to translate the page to English
+ * by programmatically setting the hidden select dropdown.
+ */
+const triggerTranslate = (onSuccess: () => void, retries = 20) => {
+  const select = document.querySelector('.goog-te-combo') as HTMLSelectElement
+  if (select) {
+    select.value = 'en'
+    select.dispatchEvent(new Event('change'))
+    onSuccess()
+  } else if (retries > 0) {
+    setTimeout(() => triggerTranslate(onSuccess, retries - 1), 300)
+  }
+}
+
 const LanguageSwitcher = () => {
   const [mounted, setMounted] = useState(false)
   const [currentLang, setCurrentLang] = useState<'ja' | 'en'>('ja')
+  const router = useRouter()
+  const initRef = useRef(false)
 
+  // Load Google Translate widget once
   useEffect(() => {
     setMounted(true)
 
@@ -20,8 +39,12 @@ const LanguageSwitcher = () => {
       setCurrentLang('en')
     }
 
+    if (initRef.current) return
+    initRef.current = true
+
     // Define callback for Google Translate initialization
     window.googleTranslateElementInit = () => {
+      if (!window.google?.translate?.TranslateElement) return
       new window.google.translate.TranslateElement(
         {
           pageLanguage: 'ja',
@@ -44,18 +67,24 @@ const LanguageSwitcher = () => {
     }
   }, [])
 
-  const switchToEnglish = useCallback(() => {
-    const tryTranslate = (retries: number) => {
-      const select = document.querySelector('.goog-te-combo') as HTMLSelectElement
-      if (select) {
-        select.value = 'en'
-        select.dispatchEvent(new Event('change'))
-        setCurrentLang('en')
-      } else if (retries > 0) {
-        setTimeout(() => tryTranslate(retries - 1), 500)
+  // Re-apply translation after SPA navigation when English is active
+  useEffect(() => {
+    const handleRouteChange = () => {
+      if (document.cookie.includes('googtrans=/ja/en')) {
+        // Wait for new page content to render, then re-trigger translation
+        setTimeout(() => {
+          triggerTranslate(() => setCurrentLang('en'))
+        }, 500)
       }
     }
-    tryTranslate(10)
+    router.events.on('routeChangeComplete', handleRouteChange)
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange)
+    }
+  }, [router.events])
+
+  const switchToEnglish = useCallback(() => {
+    triggerTranslate(() => setCurrentLang('en'))
   }, [])
 
   const switchToJapanese = useCallback(() => {
@@ -65,17 +94,20 @@ const LanguageSwitcher = () => {
       'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.' +
       window.location.hostname
 
-    // Try to click the "Show original" button in the Google Translate banner
-    const banner = document.querySelector('.goog-te-banner-frame') as HTMLIFrameElement
-    if (banner) {
-      const innerDoc = banner.contentDocument || banner.contentWindow?.document
-      if (innerDoc) {
-        const restoreBtn = innerDoc.querySelector('.goog-close-link') as HTMLElement
+    // Try to use Google Translate's restore-original function
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const frame = document.querySelector('.goog-te-banner-frame') as any
+    if (frame) {
+      try {
+        const innerDoc = frame.contentDocument || frame.contentWindow?.document
+        const restoreBtn = innerDoc?.querySelector('.goog-close-link') as HTMLElement
         if (restoreBtn) {
           restoreBtn.click()
           setCurrentLang('ja')
           return
         }
+      } catch {
+        // Cross-origin frame access may fail, fall through to reload
       }
     }
 

@@ -106,14 +106,21 @@ body {
   font-size: 0 !important;
 }
 
+/* Hide Google Translate toolbar/banner overlays but keep widget functional.
+   display:none prevents the widget from initializing, so use
+   visibility + zero-size instead. */
 .skiptranslate {
-  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
 }
 
 #google_translate_element {
   position: absolute !important;
   left: -9999px !important;
   top: -9999px !important;
-  height: 0 !important;
-  overflow: hidden !important;
 }
