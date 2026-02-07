@@ -4,6 +4,7 @@ import headerNavLinks from '@/data/headerNavLinks'
 import Link from './Link'
 import MobileNav from './MobileNav'
 import ThemeSwitch from './ThemeSwitch'
+import LanguageSwitcher from './LanguageSwitcher'
 // import Typical from 'react-typical'
 import { TypeAnimation } from 'react-type-animation'
 
@@ -43,6 +44,7 @@ const Header = () => {
             </Link>
           ))}
         </div>
+        <LanguageSwitcher />
         <ThemeSwitch />
         <MobileNav />
       </div>
