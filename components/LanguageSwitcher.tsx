@@ -45,12 +45,17 @@ const LanguageSwitcher = () => {
   }, [])
 
   const switchToEnglish = useCallback(() => {
-    const select = document.querySelector('.goog-te-combo') as HTMLSelectElement
-    if (select) {
-      select.value = 'en'
-      select.dispatchEvent(new Event('change'))
-      setCurrentLang('en')
+    const tryTranslate = (retries: number) => {
+      const select = document.querySelector('.goog-te-combo') as HTMLSelectElement
+      if (select) {
+        select.value = 'en'
+        select.dispatchEvent(new Event('change'))
+        setCurrentLang('en')
+      } else if (retries > 0) {
+        setTimeout(() => tryTranslate(retries - 1), 500)
+      }
     }
+    tryTranslate(10)
   }, [])
 
   const switchToJapanese = useCallback(() => {
@@ -95,7 +100,7 @@ const LanguageSwitcher = () => {
 
   return (
     <>
-      <div id="google_translate_element" className="hidden" />
+      <div id="google_translate_element" />
       <div
         className="ml-1 mr-1 flex items-center rounded p-1 text-sm font-medium sm:ml-4"
         role="radiogroup"
