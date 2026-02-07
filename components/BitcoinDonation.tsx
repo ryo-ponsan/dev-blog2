@@ -26,7 +26,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="shrink-0 rounded bg-gray-700 px-2 py-1 text-xs text-gray-300 transition hover:bg-gray-600"
+      className="shrink-0 rounded bg-gray-200 px-2 py-1 text-xs text-gray-700 transition hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
     >
       {copied ? 'Copied!' : 'Copy'}
     </button>
@@ -91,7 +91,7 @@ export default function BitcoinDonation() {
     <div className="py-6">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 rounded-lg border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-400 transition hover:bg-orange-500/20 hover:text-orange-300"
+        className="inline-flex items-center gap-2 rounded-lg border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-600 transition hover:bg-orange-500/20 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
       >
         <BitcoinSvg className="h-5 w-5 fill-current" />
         暗号通貨で寄付する
@@ -99,7 +99,7 @@ export default function BitcoinDonation() {
       </button>
 
       {isOpen && (
-        <div className="mt-4 space-y-4 rounded-lg border border-gray-700 bg-gray-800/50 p-4">
+        <div className="mt-4 space-y-4 rounded-lg border border-gray-200 bg-white/80 backdrop-blur-sm p-4 dark:border-gray-700 dark:bg-gray-800/50">
           {/* Bitcoin On-chain */}
           {btcAddress && (
             <div>
@@ -108,7 +108,7 @@ export default function BitcoinDonation() {
                 Bitcoin (On-chain)
               </div>
               <div className="flex items-center gap-2">
-                <code className="min-w-0 overflow-x-auto rounded bg-gray-900 px-3 py-2 text-xs text-gray-300">
+                <code className="min-w-0 overflow-x-auto rounded bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-900 dark:text-gray-300">
                   {btcAddress}
                 </code>
                 <CopyButton text={btcAddress} />
@@ -130,7 +130,7 @@ export default function BitcoinDonation() {
                 Lightning Network
               </div>
               <div className="flex items-center gap-2">
-                <code className="min-w-0 overflow-x-auto rounded bg-gray-900 px-3 py-2 text-xs text-gray-300">
+                <code className="min-w-0 overflow-x-auto rounded bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-900 dark:text-gray-300">
                   {lnAddress}
                 </code>
                 <CopyButton text={lnAddress} />
@@ -155,7 +155,7 @@ export default function BitcoinDonation() {
                 Ethereum / Polygon / Arbitrum / Base / Hyperliquid
               </p>
               <div className="flex items-center gap-2">
-                <code className="min-w-0 overflow-x-auto rounded bg-gray-900 px-3 py-2 text-xs text-gray-300">
+                <code className="min-w-0 overflow-x-auto rounded bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-900 dark:text-gray-300">
                   {evmAddress}
                 </code>
                 <CopyButton text={evmAddress} />
@@ -172,7 +172,7 @@ export default function BitcoinDonation() {
                 SOL (Solana)
               </div>
               <div className="flex items-center gap-2">
-                <code className="min-w-0 overflow-x-auto rounded bg-gray-900 px-3 py-2 text-xs text-gray-300">
+                <code className="min-w-0 overflow-x-auto rounded bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-900 dark:text-gray-300">
                   {solAddress}
                 </code>
                 <CopyButton text={solAddress} />
@@ -180,7 +180,7 @@ export default function BitcoinDonation() {
             </div>
           )}
 
-          <p className="border-t border-gray-700 pt-3 text-xs text-gray-500">
+          <p className="border-t border-gray-200 pt-3 dark:border-gray-700 text-xs text-gray-500">
             これは任意の寄付であり、対価・見返りは発生しません。ご支援ありがとうございます。
           </p>
         </div>
