@@ -10,7 +10,7 @@ const ProjectCard = ({ title, description, imgSrc, href, category }: ProjectCard
 
   return (
     <div className="group w-full">
-      <div className="h-full overflow-hidden rounded-xl border border-gray-700/50 bg-gray-800/30 transition-all duration-300 hover:border-primary-500/50 hover:bg-gray-800/50 hover:shadow-lg hover:shadow-primary-500/10">
+      <div className="h-full overflow-hidden rounded-xl border border-gray-200 bg-white/60 backdrop-blur-sm transition-all duration-300 hover:border-primary-500/50 hover:bg-white/80 hover:shadow-lg hover:shadow-primary-500/10 dark:border-gray-700/50 dark:bg-gray-800/30 dark:hover:bg-gray-800/50">
         {/* モバイル: 横型レイアウト / PC: 縦型レイアウト */}
         <div className="flex flex-row sm:flex-col">
           {/* 画像部分 */}
@@ -27,7 +27,7 @@ const ProjectCard = ({ title, description, imgSrc, href, category }: ProjectCard
                       height={225}
                     />
                     {/* オーバーレイ */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                   </div>
                 </Link>
               ) : (
@@ -60,7 +60,7 @@ const ProjectCard = ({ title, description, imgSrc, href, category }: ProjectCard
             </div>
 
             {/* タイトル */}
-            <h3 className="mb-1 line-clamp-2 text-sm font-bold leading-tight text-gray-100 sm:mb-2 sm:text-lg">
+            <h3 className="mb-1 line-clamp-2 text-sm font-bold leading-tight text-gray-900 sm:mb-2 sm:text-lg dark:text-gray-100">
               {href ? (
                 <Link
                   href={href}
@@ -75,7 +75,7 @@ const ProjectCard = ({ title, description, imgSrc, href, category }: ProjectCard
             </h3>
 
             {/* 説明文 */}
-            <p className="mb-2 line-clamp-2 flex-1 text-xs leading-relaxed text-gray-400 sm:mb-3 sm:line-clamp-3 sm:text-sm">
+            <p className="mb-2 line-clamp-2 flex-1 text-xs leading-relaxed text-gray-600 sm:mb-3 sm:line-clamp-3 sm:text-sm dark:text-gray-400">
               {description}
             </p>
 
@@ -84,7 +84,7 @@ const ProjectCard = ({ title, description, imgSrc, href, category }: ProjectCard
               <div className="mt-auto">
                 <Link
                   href={href}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-primary-400 transition-colors hover:text-primary-300 sm:text-sm"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary-500 transition-colors hover:text-primary-600 sm:text-sm dark:text-primary-400 dark:hover:text-primary-300"
                   aria-label={`Link to ${title}`}
                 >
                   詳細を見る

@@ -26,10 +26,10 @@ export default function Tags({ tags }: InferGetStaticPropsType<typeof getStaticP
       <PageSEO title={`Tags - ${siteMetadata.author}`} description="Things I blog about" />
       <div className="mx-auto max-w-4xl">
         <div className="space-y-4 pt-6 pb-8 md:pt-12">
-          <h1 className="text-3xl font-extrabold leading-9 tracking-tight text-gray-100 sm:text-4xl sm:leading-10 md:text-5xl md:leading-14">
+          <h1 className="text-3xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl sm:leading-10 md:text-5xl md:leading-14">
             Tags
           </h1>
-          <p className="text-gray-400">
+          <p className="text-gray-500 dark:text-gray-400">
             {sortedTags.length} タグ・{Object.values(tags).reduce((a, b) => a + b, 0)} 記事
           </p>
         </div>
@@ -43,13 +43,13 @@ export default function Tags({ tags }: InferGetStaticPropsType<typeof getStaticP
             <Link
               key={t}
               href={`/tags/${kebabCase(t)}`}
-              className="group flex items-center gap-2 rounded-lg border border-gray-700/50 bg-gray-800/50 px-4 py-2.5 transition-all hover:border-primary-500/50 hover:bg-gray-800"
+              className="group flex items-center gap-2 rounded-lg border border-gray-200 bg-white/60 backdrop-blur-sm px-4 py-2.5 transition-all hover:border-primary-500/50 hover:bg-white/80 dark:border-gray-700/50 dark:bg-gray-800/50 dark:hover:bg-gray-800"
               aria-label={`View posts tagged ${t}`}
             >
-              <span className="text-sm font-medium text-gray-200 transition-colors group-hover:text-primary-400">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200 transition-colors group-hover:text-primary-400">
                 {t.split(' ').join('-')}
               </span>
-              <span className="rounded-full bg-gray-700/80 px-2 py-0.5 text-xs font-semibold text-gray-300 transition-colors group-hover:bg-primary-500/20 group-hover:text-primary-300">
+              <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600 transition-colors group-hover:bg-primary-500/20 group-hover:text-primary-300 dark:bg-gray-700/80 dark:text-gray-300">
                 {tags[t]}
               </span>
             </Link>
@@ -60,7 +60,7 @@ export default function Tags({ tags }: InferGetStaticPropsType<typeof getStaticP
           <div className="mt-8">
             <button
               onClick={() => setShowAll(!showAll)}
-              className="rounded-lg border border-gray-700 bg-gray-800/50 px-5 py-2.5 text-sm font-medium text-gray-300 transition-all hover:border-gray-600 hover:bg-gray-800 hover:text-gray-100"
+              className="rounded-lg border border-gray-300 bg-white/60 px-5 py-2.5 text-sm font-medium text-gray-600 transition-all hover:border-gray-400 hover:bg-white/80 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-100"
             >
               {showAll
                 ? 'メインタグのみ表示'

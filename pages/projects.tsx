@@ -26,13 +26,13 @@ export default function Projects() {
   return (
     <>
       <PageSEO title={`Projects - ${siteMetadata.author}`} description={siteMetadata.description} />
-      <div className="divide-y divide-gray-700 dark:divide-gray-700">
+      <div className="divide-y divide-gray-200 dark:divide-gray-700">
         {/* ヘッダー */}
         <div className="space-y-2 pt-6 pb-8 md:space-y-5">
-          <h1 className="text-3xl font-extrabold leading-9 tracking-tight text-gray-100 dark:text-gray-100 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14">
+          <h1 className="text-3xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14">
             Projects
           </h1>
-          <p className="text-lg leading-7 text-gray-300 dark:text-gray-300">
+          <p className="text-lg leading-7 text-gray-600 dark:text-gray-300">
             ポートフォリオ一覧
           </p>
         </div>
@@ -50,7 +50,7 @@ export default function Projects() {
                     ${
                       activeCategory === category.id
                         ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
-                        : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 hover:text-white'
+                        : 'bg-gray-200/50 text-gray-600 hover:bg-gray-300/50 hover:text-gray-900 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:hover:text-white'
                     }
                   `}
                 >
@@ -62,7 +62,7 @@ export default function Projects() {
                         ${
                           activeCategory === category.id
                             ? 'bg-white/20 text-white'
-                            : 'bg-gray-700 text-gray-400'
+                            : 'bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
                         }
                       `}
                     >
