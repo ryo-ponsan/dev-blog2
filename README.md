@@ -1,6 +1,6 @@
 # gypsy-dev
 
-Next.js + Tailwind CSS + Contentlayer で構築した個人ブログです。ベースは Tailwind Nextjs Starter Blog（Pliny）を利用し、必要な部分をカスタマイズしています。
+Next.js + Tailwind CSS + Contentlayer2 で構築した個人ブログです。ベースは Tailwind Nextjs Starter Blog（Pliny）を利用し、必要な部分をカスタマイズしています。
 
 デモ（運用中）: https://dev-blog-gypsyr.vercel.app/
 
@@ -20,10 +20,10 @@ Next.js + Tailwind CSS + Contentlayer で構築した個人ブログです。ベ
 
 ## 技術スタック
 
-- フレームワーク: `Next.js 13 (pages router)`
+- フレームワーク: `Next.js 16.4.5 (Pages Router)`
 - 言語: `TypeScript`
 - スタイル: `Tailwind CSS`
-- コンテンツ: `Contentlayer`（`data/` 以下の MDX を型安全に取り込み）
+- コンテンツ: `Contentlayer2`（`data/` 以下の MDX を型安全に取り込み）
 - ビルドスクリプト: `Node.js`（`scripts/*.mjs`）
 
 ## ディレクトリ構成（抜粋）
@@ -43,17 +43,15 @@ Next.js + Tailwind CSS + Contentlayer で構築した個人ブログです。ベ
 
 ## セットアップ
 
-前提: Node.js 16 以上（推奨 18+）、npm もしくは yarn/pnpm。
+前提: Node.js 22.23.4以上の22系（`.nvmrc`参照）とnpm。古いNodeでのインストールは`.npmrc`で拒否します。
 
-1) 依存関係のインストール
+1. 依存関係のインストール
 
 ```bash
-npm install
-# または
-yarn
+npm ci
 ```
 
-2) 環境変数の設定（任意機能を使う場合）
+2. 環境変数の設定（任意機能を使う場合）
 
 ```bash
 cp .env.example .env.local
@@ -62,7 +60,7 @@ cp .env.example .env.local
 - コメント（Giscus）やニュースレター（Buttondown）を使う場合、`.env.local` に各種キーを設定してください。
 - 必要なキーは `.env.example` を参照。
 
-3) サイト情報の設定
+3. サイト情報の設定
 
 - `data/siteMetadata.js` の各項目（`title`, `siteUrl`, `github`, `comments`, `newsletter` など）を用途に合わせて編集します。
 
@@ -71,7 +69,9 @@ cp .env.example .env.local
 - 開発サーバ起動: `npm run dev`
 - 本番ビルド: `npm run build`
 - 本番サーバ起動: `npm run serve`
-- Lint/整形: `npm run lint`
+- Lint: `npm run lint`
+- 購読APIのテスト（外部送信なし）: `npm test`
+- ビルド後の公開記事・下書き非公開・RSS等の検証: `npm run verify`
 - バンドル解析: `npm run analyze`
 
 package.json（抜粋）
@@ -79,18 +79,18 @@ package.json（抜粋）
 ```json
 {
   "scripts": {
-    "dev": "cross-env INIT_CWD=$PWD next dev",
-    "build": "cross-env INIT_CWD=$PWD next build && node -r esbuild-register ./scripts/postbuild.mjs",
+    "dev": "next dev --webpack",
+    "build": "contentlayer2 build && next build --webpack && node -r esbuild-register ./scripts/postbuild.mjs",
     "serve": "next start",
-    "analyze": "cross-env ANALYZE=true next build",
-    "lint": "next lint --fix --dir pages --dir components --dir lib --dir layouts --dir scripts"
+    "analyze": "cross-env ANALYZE=true next build --webpack",
+    "lint": "eslint . --max-warnings=0"
   }
 }
 ```
 
 ## 記事の追加（MDX）
 
-1) `data/blog/` に `my-post.mdx` を追加
+1. `data/blog/` に `my-post.mdx` を追加
 
 ```mdx
 ---
@@ -100,15 +100,15 @@ tags: [nextjs, tailwind]
 summary: 記事の要約
 draft: false
 images: ['/static/images/cover.png']
-authors: ['default']
+authors: []
 ---
 
 本文は MDX で記述できます。
 ```
 
-2) 著者を追加したい場合は `data/authors/` に MDX を追加（`default.mdx` を参考に）
+2. 新規記事は `authors: []` を明示し、個人の著者情報を取り込みません。個人情報の扱いは `AGENTS.md` を優先します。
 
-3) 数式（KaTeX）、コードブロック（Prism）、脚注/引用などは既にプラグイン済みです。
+3. 数式（KaTeX）、コードブロック（Prism）、脚注/引用などは既にプラグイン済みです。
 
 ## コメント / ニュースレター
 
@@ -132,6 +132,5 @@ authors: ['default']
 ## クレジット
 
 - Theme/基盤: Tailwind Nextjs Starter Blog（Pliny） by timlrx
-- 改変・運用: ryo-ponsan（https://github.com/ryo-ponsan）
 
 ライセンスは元テーマに準じます（本リポジトリでのライセンス明記が必要なら後日追記します）。

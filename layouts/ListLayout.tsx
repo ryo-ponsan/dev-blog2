@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import { formatDate } from 'pliny/utils/formatDate'
-import { CoreContent } from 'pliny/utils/contentlayer'
+import { formatDate } from 'pliny/utils/formatDate.js'
+import { CoreContent } from 'pliny/utils/contentlayer.js'
 import type { Blog } from 'contentlayer/generated'
 import Link from '@/components/Link'
 import Tag from '@/components/Tag'
@@ -109,9 +109,7 @@ export default function ListLayout({
           </div>
         </div>
         <ul className="space-y-4">
-          {!filteredBlogPosts.length && (
-            <p className="text-gray-400">No posts found.</p>
-          )}
+          {!filteredBlogPosts.length && <p className="text-gray-400">No posts found.</p>}
           {displayPosts.map((post) => {
             const { path, date, title, summary, tags } = post
             return (

@@ -6,21 +6,21 @@ Read AGENTS.md first for shared editorial, personal AI operation, and publishing
 
 ## Project Overview
 
-This is a personal blog built with **Next.js 13 (Pages Router)**, **Tailwind CSS**, and **Contentlayer**. The theme is based on Tailwind Nextjs Starter Blog (Pliny) with custom modifications.
+This is a personal blog built with **Next.js 16 (Pages Router)**, **Tailwind CSS**, and **Contentlayer2**. The theme is based on Tailwind Nextjs Starter Blog (Pliny) with custom modifications.
 
 - **Live Site**: https://dev-blog-gypsyr.vercel.app/
 - **Language**: Japanese (primary), with Japanese locale settings
-- **Node Version**: 22.x (see `.nvmrc`)
+- **Node Version**: 22.23.4 or later within 22.x (see `.nvmrc` and `.npmrc`)
 
 ## Tech Stack
 
 | Category   | Technology                    |
 | ---------- | ----------------------------- |
-| Framework  | Next.js 13.1.6 (Pages Router) |
+| Framework  | Next.js 16.4.5 (Pages Router) |
 | Language   | TypeScript                    |
 | Styling    | Tailwind CSS 3.x              |
-| Content    | Contentlayer (MDX)            |
-| UI Library | Pliny 0.0.10                  |
+| Content    | Contentlayer2 0.5.8 (MDX)     |
+| UI Library | Pliny 0.4.1                   |
 | Comments   | Giscus (GitHub Discussions)   |
 | Newsletter | Buttondown                    |
 | Deployment | Vercel                        |
@@ -79,13 +79,13 @@ This is a personal blog built with **Next.js 13 (Pages Router)**, **Tailwind CSS
 | `next.config.js`         | Next.js config with Contentlayer, security headers |
 | `tailwind.config.js`     | Tailwind theme, typography, dark mode              |
 | `tsconfig.json`          | TypeScript config with path aliases                |
-| `.eslintrc.js`           | ESLint rules (TypeScript, React, a11y)             |
+| `eslint.config.mjs`      | ESLint rules (TypeScript, React, a11y)             |
 
 ## Development Commands
 
 ```bash
 # Install dependencies
-npm install
+npm ci
 
 # Start development server
 npm run dev
@@ -98,7 +98,7 @@ npm run build
 # Start production server
 npm run serve
 
-# Lint and fix
+# Lint (no mutation)
 npm run lint
 
 # Analyze bundle
@@ -119,7 +119,7 @@ date: '2026-01-24'
 tags: ['tag1', 'tag2']
 draft: false
 summary: 'Brief description for listing and SEO'
-authors: ['default']
+authors: []
 ---
 
 Post content in MDX format...
@@ -127,36 +127,22 @@ Post content in MDX format...
 
 ### Frontmatter Fields
 
-| Field          | Required | Description                                    |
-| -------------- | -------- | ---------------------------------------------- |
-| `title`        | Yes      | Post title                                     |
-| `date`         | Yes      | Publication date (YYYY-MM-DD)                  |
-| `tags`         | No       | Array of tag strings                           |
-| `draft`        | No       | Set `true` to hide from production             |
-| `summary`      | No       | Short description for listings                 |
-| `authors`      | No       | Array of author slugs (default: `['default']`) |
-| `images`       | No       | Array of image paths for SEO                   |
-| `layout`       | No       | Custom layout (default: `PostLayout`)          |
-| `lastmod`      | No       | Last modified date                             |
-| `canonicalUrl` | No       | Canonical URL if cross-posted                  |
+| Field          | Required | Description                               |
+| -------------- | -------- | ----------------------------------------- |
+| `title`        | Yes      | Post title                                |
+| `date`         | Yes      | Publication date (YYYY-MM-DD)             |
+| `tags`         | No       | Array of tag strings                      |
+| `draft`        | No       | Set `true` to hide from production        |
+| `summary`      | No       | Short description for listings            |
+| `authors`      | No       | Use `[]` for new posts; see privacy rules |
+| `images`       | No       | Array of image paths for SEO              |
+| `layout`       | No       | Custom layout (default: `PostLayout`)     |
+| `lastmod`      | No       | Last modified date                        |
+| `canonicalUrl` | No       | Canonical URL if cross-posted             |
 
-### Adding an Author
+### Author privacy
 
-Create an MDX file in `data/authors/` (e.g., `myname.mdx`):
-
-```mdx
----
-name: 'Author Name'
-avatar: '/static/images/avatar.jpg'
-occupation: 'Developer'
-company: 'Company Name'
-email: 'email@example.com'
-twitter: 'https://twitter.com/handle'
-github: 'https://github.com/handle'
----
-
-Author bio in MDX...
-```
+New posts must explicitly use `authors: []`. Do not introduce a personal profile or avatar into an article. Follow `AGENTS.md` before editing historical author material.
 
 ## Code Conventions
 
@@ -229,7 +215,9 @@ Husky runs lint-staged on commit:
 
 Configured in `next.config.js`:
 
-- CSP includes Giscus domain
+- CSP restricts outbound connections and embeds; the MDX renderer still requires unsafe-eval
+- Do not remove unsafe-eval without migrating MDX evaluation and checking client navigation
+- Object embedding is disabled; base URLs, frame ancestors, and form actions are restricted
 - X-Frame-Options: DENY
 - Strict HSTS
 
@@ -242,7 +230,7 @@ Edit `data/siteMetadata.js`:
 - `title`, `author`, `description`
 - `siteUrl` for production URL
 - `comments.giscusConfig` for comment settings
-- `analytics` for tracking providers
+- Analytics and search providers are currently disabled; do not add trackers as incidental maintenance
 
 ### Add Navigation Link
 
@@ -280,6 +268,8 @@ theme: 'light', // 'system', 'dark', or 'light'
 
 ```bash
 npm run build
+npm run verify
+npm test
 # Generates:
 # - .next/ (Next.js build)
 # - .contentlayer/ (Generated content)
@@ -292,7 +282,7 @@ npm run build
 
 - The owner uses develop (tracking origin/develop) for publishing. Push the intended commit and verify the Vercel deployment and public article; do not assume main is the production branch.
 - Set environment variables in Vercel dashboard
-- Node.js 22.x runtime (specified in `package.json` engines)
+- Node.js 22.x runtime with minimum 22.23.4 (specified in `package.json` engines)
 
 ## Troubleshooting
 
@@ -304,7 +294,7 @@ npm run build
 
 ### Build Failures
 
-- Check for TypeScript errors: `npx tsc --noEmit`
+- Check for TypeScript errors: `npm run typecheck`
 - Check ESLint: `npm run lint`
 - Verify all imports resolve correctly
 

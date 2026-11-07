@@ -1,7 +1,7 @@
 import { useState, ReactNode } from 'react'
-import { Comments } from 'pliny/comments'
-import { formatDate } from 'pliny/utils/formatDate'
-import { CoreContent } from 'pliny/utils/contentlayer'
+import { Comments } from 'pliny/comments/index.js'
+import { formatDate } from 'pliny/utils/formatDate.js'
+import { CoreContent } from 'pliny/utils/contentlayer.js'
 import type { Blog } from 'contentlayer/generated'
 import Link from '@/components/Link'
 import PageTitle from '@/components/PageTitle'
@@ -46,7 +46,9 @@ export default function PostLayout({ content, next, prev, children }: LayoutProp
           </header>
           <div className="grid-rows-[auto_1fr] divide-y divide-gray-200 pb-8 dark:divide-gray-700 xl:divide-y-0">
             <div className="divide-y divide-gray-200 dark:divide-gray-700 xl:col-span-3 xl:row-span-2 xl:pb-0">
-              <div className="prose prose-base sm:prose-lg max-w-none pt-10 pb-8 dark:prose-dark">{children}</div>
+              <div className="prose prose-base sm:prose-lg max-w-none pt-10 pb-8 dark:prose-dark">
+                {children}
+              </div>
               <BitcoinDonation />
             </div>
             {siteMetadata.comments && (

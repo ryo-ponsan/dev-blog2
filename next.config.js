@@ -1,19 +1,25 @@
-const { withContentlayer } = require('next-contentlayer')
+const { withContentlayer } = require('next-contentlayer2')
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 })
 
 // You might need to insert additional domains in script-src if you are using external services
+// The MDX renderer evaluates locally built code in the browser, so it still needs
+// unsafe-eval. Removing it requires a separate precompiled-MDX migration.
 const ContentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-eval' 'unsafe-inline' giscus.app;
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://giscus.app;
   style-src 'self' 'unsafe-inline';
   img-src * blob: data:;
   media-src 'none';
-  connect-src *;
+  connect-src 'self' https://giscus.app;
   font-src 'self' fonts.gstatic.com;
-  frame-src giscus.app
+  frame-src https://giscus.app;
+  object-src 'none';
+  base-uri 'self';
+  frame-ancestors 'none';
+  form-action 'self'
 `
 
 const securityHeaders = [
@@ -61,10 +67,8 @@ module.exports = () => {
   const plugins = [withContentlayer, withBundleAnalyzer]
   return plugins.reduce((acc, next) => next(acc), {
     reactStrictMode: true,
+    transpilePackages: ['pliny'],
     pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
-    eslint: {
-      dirs: ['pages', 'components', 'lib', 'layouts', 'scripts'],
-    },
     async headers() {
       return [
         {
@@ -73,7 +77,7 @@ module.exports = () => {
         },
       ]
     },
-    webpack: (config, options) => {
+    webpack: (config) => {
       config.module.rules.push({
         test: /\.svg$/,
         use: ['@svgr/webpack'],

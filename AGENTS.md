@@ -24,6 +24,10 @@ This is the owner's personal blog. Act as their personal AI: find worthwhile top
 
 ## Working in this repository
 
+- Runtime baseline: Node.js 22.23.4 or later in the 22.x line (`.nvmrc` / `engines`). Use `npm ci` with the committed lockfile. Never bypass engine or peer checks with `--force` as a security fix.
+- This is Next.js 16 (Pages Router), React 18, Contentlayer2, and Pliny 0.4. Read the version-matched Next.js docs in `node_modules/next/dist/docs/` when changing framework behavior. `npm run build` generates content before the Next.js type check and uses Webpack for the SVG loader.
+- Run `npm run lint`, `npm test`, `npm run build`, and `npm run verify` before publishing code changes. Keep drafts out of HTML, page JSON, pagination, related-post links, RSS, and sitemap.
+- The configured newsletter provider is Buttondown. Test subscriptions with a mocked provider, not live subscriber data. Preserve input limits, same-origin checks, request timeouts, and generic error responses.
 - Read `CLAUDE.md` for the existing technical guide. These shared instructions take priority over stale examples there.
 - Posts belong in `data/blog/` as MDX. Root `blog/` is not the content source.
 - New posts must explicitly use `authors: []` so they do not inherit a personal author profile, photo, or social account. Validate the rendered HTML, serialized page data, social metadata, and RSS as well as the title, date, summary, tags, links, and `draft` value. Do not restore personal social links through shared defaults or feature work.

@@ -1,6 +1,6 @@
 import { useState, ReactNode } from 'react'
-import { Comments } from 'pliny/comments'
-import { CoreContent } from 'pliny/utils/contentlayer'
+import { Comments } from 'pliny/comments/index.js'
+import { CoreContent } from 'pliny/utils/contentlayer.js'
 import type { Blog, Authors } from 'contentlayer/generated'
 import Link from '@/components/Link'
 import PageTitle from '@/components/PageTitle'
@@ -96,7 +96,9 @@ export default function PostLayout({ content, authorDetails, next, prev, childre
               </dd>
             </dl>
             <div className="divide-y divide-gray-200 dark:divide-gray-700 xl:col-span-3 xl:row-span-2 xl:pb-0">
-              <div className="prose prose-base sm:prose-lg max-w-none pt-10 pb-8 dark:prose-dark">{children}</div>
+              <div className="prose prose-base sm:prose-lg max-w-none pt-10 pb-8 dark:prose-dark">
+                {children}
+              </div>
               <BitcoinDonation />
               <div className="pt-6 pb-6 text-sm text-gray-700 dark:text-gray-300">
                 <Link href={discussUrl(path)} rel="nofollow">

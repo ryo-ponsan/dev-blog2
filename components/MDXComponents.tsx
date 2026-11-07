@@ -1,23 +1,15 @@
-/* eslint-disable react/display-name */
-import React from 'react'
-import { MDXLayout, ComponentMap } from 'pliny/mdx-components'
-import { TOCInline } from 'pliny/ui/TOCInline'
-import { Pre } from 'pliny/ui/Pre'
-import { BlogNewsletterForm } from 'pliny/ui/NewsletterForm'
+import type { MDXComponents as ComponentMap } from 'mdx/types'
+import TOCInline from 'pliny/ui/TOCInline.js'
+import Pre from 'pliny/ui/Pre.js'
+import BlogNewsletterForm from 'pliny/ui/BlogNewsletterForm.js'
 
 import Image from './Image'
 import CustomLink from './Link'
-
-export const Wrapper = ({ layout, content, ...rest }: MDXLayout) => {
-  const Layout = require(`../layouts/${layout}`).default
-  return <Layout content={content} {...rest} />
-}
 
 export const MDXComponents: ComponentMap = {
   Image,
   TOCInline,
   a: CustomLink,
   pre: Pre,
-  wrapper: Wrapper,
   BlogNewsletterForm,
 }

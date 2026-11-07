@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import siteMetadata from '@/data/siteMetadata'
-import { CoreContent } from 'pliny/utils/contentlayer'
+import { CoreContent } from 'pliny/utils/contentlayer.js'
 import type { Blog, Authors } from 'contentlayer/generated'
 interface CommonSEOProps {
   title: string
@@ -22,7 +22,7 @@ interface CommonSEOProps {
 const getTwitterHandle = (twitter: string): string => {
   if (!twitter) return ''
   if (twitter.startsWith('@')) return twitter
-  // Extract handle from URL like https://twitter.com/anderson_Gypsy
+  // Extract the account path from a configured social URL.
   const match = twitter.match(/(?:twitter\.com|x\.com)\/([^/?]+)/)
   return match ? `@${match[1]}` : twitter
 }
@@ -133,8 +133,8 @@ export const BlogSEO = ({
     images.length === 0
       ? [siteMetadata.socialBanner]
       : typeof images === 'string'
-      ? [images]
-      : images
+        ? [images]
+        : images
 
   const featuredImages = imagesArr.map((img) => {
     return {

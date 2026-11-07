@@ -2,8 +2,8 @@ import { useState } from 'react'
 import Link from '@/components/Link'
 import { PageSEO } from '@/components/SEO'
 import siteMetadata from '@/data/siteMetadata'
-import { kebabCase } from 'pliny/utils/kebabCase'
-import { getAllTags } from 'pliny/utils/contentlayer'
+import { kebabCase } from '@/data/tagUtils'
+import { getAllTags } from '@/data/tagUtils'
 import { GetStaticProps, InferGetStaticPropsType } from 'next'
 import { allBlogs } from 'contentlayer/generated'
 
@@ -34,9 +34,7 @@ export default function Tags({ tags }: InferGetStaticPropsType<typeof getStaticP
           </p>
         </div>
 
-        {Object.keys(tags).length === 0 && (
-          <p className="text-gray-400">No tags found.</p>
-        )}
+        {Object.keys(tags).length === 0 && <p className="text-gray-400">No tags found.</p>}
 
         <div className="flex flex-wrap gap-3">
           {displayedTags.map((t) => (

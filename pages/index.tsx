@@ -2,17 +2,17 @@ import Link from '@/components/Link'
 import { PageSEO } from '@/components/SEO'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
-import { formatDate } from 'pliny/utils/formatDate'
-import { sortedBlogPost, allCoreContent } from 'pliny/utils/contentlayer'
+import { formatDate } from 'pliny/utils/formatDate.js'
+import { sortedBlogPost, allCoreContent } from 'pliny/utils/contentlayer.js'
 import { InferGetStaticPropsType } from 'next'
-import { NewsletterForm } from 'pliny/ui/NewsletterForm'
+import NewsletterForm from 'pliny/ui/NewsletterForm.js'
 import { allBlogs } from 'contentlayer/generated'
 import type { Blog } from 'contentlayer/generated'
 
 const MAX_DISPLAY = 7
 
 export const getStaticProps = async () => {
-  const sortedPosts = sortedBlogPost(allBlogs) as Blog[]
+  const sortedPosts = sortedBlogPost(allBlogs.filter((post) => !post.draft)) as Blog[]
   const posts = allCoreContent(sortedPosts)
 
   return { props: { posts } }
