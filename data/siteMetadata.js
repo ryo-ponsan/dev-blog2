@@ -13,8 +13,8 @@ const siteMetadata = {
   siteLogo: '/static/images/logo.png',
   image: '/static/images/avatar.jpeg',
   email: '',
-  github: 'https://github.com/ryo-ponsan',
-  twitter: 'https://twitter.com/anderson_Gypsy',
+  github: '',
+  twitter: '',
   socialBanner: '/static/images/logo.png',
   // Crypto donation addresses (replace with your own)
   bitcoinAddress: 'bc1qxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
