@@ -1,7 +1,7 @@
 import { MDXLayoutRenderer } from '@/components/MDXLayoutRenderer'
 import PageTitle from '@/components/PageTitle'
 import { MDXComponents } from '@/components/MDXComponents'
-import { sortedBlogPost, coreContent } from 'pliny/utils/contentlayer.js'
+import { sortedBlogPost, coreContent } from '@/components/contentUtils'
 import { InferGetStaticPropsType } from 'next'
 import { allBlogs, allAuthors } from 'contentlayer/generated'
 import type { Blog } from 'contentlayer/generated'

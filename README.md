@@ -1,6 +1,6 @@
 # gypsy-dev
 
-Next.js + Tailwind CSS + Contentlayer2 で構築した個人ブログです。ベースは Tailwind Nextjs Starter Blog（Pliny）を利用し、必要な部分をカスタマイズしています。
+Next.js + Tailwind CSS + mdx-bundler で構築した個人ブログです。ベースは Tailwind Nextjs Starter Blog（Pliny）を利用し、必要な部分をカスタマイズしています。
 
 デモ（運用中）: https://dev-blog-gypsyr.vercel.app/
 
@@ -23,7 +23,7 @@ Next.js + Tailwind CSS + Contentlayer2 で構築した個人ブログです。�
 - フレームワーク: `Next.js 16.4.5 (Pages Router)`
 - 言語: `TypeScript`
 - スタイル: `Tailwind CSS`
-- コンテンツ: `Contentlayer2`（`data/` 以下の MDX を型安全に取り込み）
+- コンテンツ: `mdx-bundler` + ローカル生成器（MDXの型検証・目次・記事データ生成）
 - ビルドスクリプト: `Node.js`（`scripts/*.mjs`）
 
 ## ディレクトリ構成（抜粋）
@@ -37,7 +37,7 @@ Next.js + Tailwind CSS + Contentlayer2 で構築した個人ブログです。�
   - `data/siteMetadata.js`: タイトル/URL/コメント設定などサイト共通設定
 - `public/`: 画像や静的ファイル
 - `css/`: Tailwind, Prism のスタイル
-- `contentlayer.config.ts`: Contentlayer 設定
+- `scripts/generate-content.mjs`: MDXの検証と生成
 
 注: ルート直下の `blog/` にある MDX はビルド対象外です。記事は `data/blog/` に追加してください。
 
@@ -74,15 +74,19 @@ cp .env.example .env.local
 - ビルド後の公開記事・下書き非公開・RSS等の検証: `npm run verify`
 - バンドル解析: `npm run analyze`
 
+`npm run dev` はMDXを生成してからNextを起動します。記事・著者MDXやそのフォルダを変更・削除すると再生成してNextを再起動します。不正なfrontmatterやMDXがある間はサーバーを停止し、修正後に再開します。frontmatterはYAMLのみ対応します。
+
+`.contentlayer/generated` と `contentlayer/generated` の名前は既存のデータ参照との互換用です。Contentlayer/Plinyパッケージへの依存はありません。生成処理とスキーマは `scripts/generate-content.mjs`、派生UIのライセンスは `LICENSE.pliny` を参照してください。
+
 package.json（抜粋）
 
 ```json
 {
   "scripts": {
-    "dev": "next dev --webpack",
-    "build": "contentlayer2 build && next build --webpack && node -r esbuild-register ./scripts/postbuild.mjs",
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/generate-content.mjs && next build --webpack && node -r esbuild-register ./scripts/postbuild.mjs",
     "serve": "next start",
-    "analyze": "cross-env ANALYZE=true next build --webpack",
+    "analyze": "node scripts/generate-content.mjs && cross-env ANALYZE=true next build --webpack",
     "lint": "eslint . --max-warnings=0"
   }
 }
@@ -125,7 +129,7 @@ authors: []
 
 ## よくあるハマりどころ / 注意
 
-- 記事の配置場所: 必ず `data/blog/` に置いてください（`contentlayer.config.ts` の `contentDirPath` が `data` のため）。
+- 記事の配置場所: 必ず `data/blog/` に置いてください（生成器は `data/blog`・`data/old`・`data/authors` を対象とするため）。
 - 画像パス: `/public` 配下に置き、先頭 `/` からのパスで参照します（例: `/static/images/xxx.png`）。
 - ローカルでコメントは表示されない場合があります（GitHub 認証や公開設定が必要）。
 

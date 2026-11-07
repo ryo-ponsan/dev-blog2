@@ -1,7 +1,7 @@
 import type { MDXComponents as ComponentMap } from 'mdx/types'
-import TOCInline from 'pliny/ui/TOCInline.js'
-import Pre from 'pliny/ui/Pre.js'
-import BlogNewsletterForm from 'pliny/ui/BlogNewsletterForm.js'
+import TOCInline from './TOCInline'
+import Pre from './Pre'
+import { BlogNewsletterForm } from './NewsletterForm'
 
 import Image from './Image'
 import CustomLink from './Link'

@@ -25,7 +25,9 @@
 /* https://stackoverflow.com/questions/61083813/how-to-avoid-internal-autofill-selected-style-to-be-applied */
 input:-webkit-autofill,
 input:-webkit-autofill:focus {
-  transition: background-color 600000s 0s, color 600000s 0s;
+  transition:
+    background-color 600000s 0s,
+    color 600000s 0s;
 }
 
 /* Mobile-friendly prose adjustments */
@@ -91,6 +93,18 @@ input:-webkit-autofill:focus {
 .prose table {
   @apply block overflow-x-auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Keep long formulas scrollable inside the article on narrow screens. */
+.prose .katex-display {
+  overflow: auto hidden;
+}
+
+.prose :not(.katex-display) > .katex {
+  display: inline-block;
+  max-width: 100%;
+  overflow: auto hidden;
+  vertical-align: middle;
 }
 
 /* Hide Google Translate default UI */

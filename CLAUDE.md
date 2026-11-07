@@ -6,7 +6,7 @@ Read AGENTS.md first for shared editorial, personal AI operation, and publishing
 
 ## Project Overview
 
-This is a personal blog built with **Next.js 16 (Pages Router)**, **Tailwind CSS**, and **Contentlayer2**. The theme is based on Tailwind Nextjs Starter Blog (Pliny) with custom modifications.
+This is a personal blog built with **Next.js 16 (Pages Router)**, **Tailwind CSS**, and **mdx-bundler**. The theme is based on Tailwind Nextjs Starter Blog (Pliny) with custom modifications.
 
 - **Live Site**: https://dev-blog-gypsyr.vercel.app/
 - **Language**: Japanese (primary), with Japanese locale settings
@@ -14,16 +14,16 @@ This is a personal blog built with **Next.js 16 (Pages Router)**, **Tailwind CSS
 
 ## Tech Stack
 
-| Category   | Technology                    |
-| ---------- | ----------------------------- |
-| Framework  | Next.js 16.4.5 (Pages Router) |
-| Language   | TypeScript                    |
-| Styling    | Tailwind CSS 3.x              |
-| Content    | Contentlayer2 0.5.8 (MDX)     |
-| UI Library | Pliny 0.4.1                   |
-| Comments   | Giscus (GitHub Discussions)   |
-| Newsletter | Buttondown                    |
-| Deployment | Vercel                        |
+| Category   | Technology                                          |
+| ---------- | --------------------------------------------------- |
+| Framework  | Next.js 16.4.5 (Pages Router)                       |
+| Language   | TypeScript                                          |
+| Styling    | Tailwind CSS 3.x                                    |
+| Content    | mdx-bundler 10.1.1 + local validated generation     |
+| UI         | Local components derived from Pliny (LICENSE.pliny) |
+| Comments   | Giscus (GitHub Discussions)                         |
+| Newsletter | Buttondown                                          |
+| Deployment | Vercel                                              |
 
 ## Directory Structure
 
@@ -72,14 +72,14 @@ This is a personal blog built with **Next.js 16 (Pages Router)**, **Tailwind CSS
 
 ## Key Configuration Files
 
-| File                     | Purpose                                            |
-| ------------------------ | -------------------------------------------------- |
-| `contentlayer.config.ts` | Contentlayer schema for Blog and Authors           |
-| `data/siteMetadata.js`   | Site title, URL, social links, comments, analytics |
-| `next.config.js`         | Next.js config with Contentlayer, security headers |
-| `tailwind.config.js`     | Tailwind theme, typography, dark mode              |
-| `tsconfig.json`          | TypeScript config with path aliases                |
-| `eslint.config.mjs`      | ESLint rules (TypeScript, React, a11y)             |
+| File                           | Purpose                                            |
+| ------------------------------ | -------------------------------------------------- |
+| `scripts/generate-content.mjs` | Blog/Authors schema, validation, MDX generation    |
+| `data/siteMetadata.js`         | Site title, URL, social links, comments, analytics |
+| `next.config.js`               | Next.js config, security headers                   |
+| `tailwind.config.js`           | Tailwind theme, typography, dark mode              |
+| `tsconfig.json`                | TypeScript config with path aliases                |
+| `eslint.config.mjs`            | ESLint rules (TypeScript, React, a11y)             |
 
 ## Development Commands
 
@@ -150,8 +150,8 @@ New posts must explicitly use `authors: []`. Do not introduce a personal profile
 
 - Use TypeScript for all `.tsx` files
 - Path aliases available: `@/components/*`, `@/data/*`, `@/layouts/*`, `@/lib/*`, `@/css/*`
-- Import contentlayer types: `import { Blog, Authors } from 'contentlayer/generated'`
-- Use `pliny` utilities for content operations:
+- Import generated content types (compatibility alias): `import { Blog, Authors } from 'contentlayer/generated'`
+- Use local `components/contentUtils.ts` for content operations:
   - `sortedBlogPost()` - Sort posts by date
   - `allCoreContent()` - Extract core content for listings
   - `coreContent()` - Extract single post core content
@@ -188,7 +188,7 @@ Defined in `components/MDXComponents.tsx`:
 ### Content Location
 
 - **Always place blog posts in `data/blog/`** - The `blog/` folder in root is NOT processed
-- Contentlayer processes files from `data/` directory only
+- The local generator processes `data/blog`, `data/old`, and `data/authors` MDX only
 - Pattern for blog: `{blog,old}/**/*.mdx`
 - Pattern for authors: `authors/**/*.mdx`
 
@@ -286,9 +286,9 @@ npm test
 
 ## Troubleshooting
 
-### Contentlayer Issues
+### Content Generation Issues
 
-- Run `rm -rf .contentlayer` and rebuild
+- Run `node scripts/generate-content.mjs` and rebuild. A failed generation invalidates previous output.
 - Check MDX frontmatter syntax (YAML format)
 - Ensure dates are valid ISO format
 

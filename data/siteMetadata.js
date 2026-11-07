@@ -1,6 +1,5 @@
 // @ts-check
 
-/** @type {import("pliny/config.js").PlinyConfig } */
 const siteMetadata = {
   title: 'gypsy-blog',
   author: 'anderson-gypsy-blog',

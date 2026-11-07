@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import type { MDXComponents as ComponentMap } from 'mdx/types'
-import { MDXLayoutRenderer as RenderMDX } from 'pliny/mdx-components.js'
+import RenderMDX from './RenderMDX'
 import type { Authors, Blog } from 'contentlayer/generated'
 import AuthorLayout from '@/layouts/AuthorLayout'
 import PostLayout from '@/layouts/PostLayout'

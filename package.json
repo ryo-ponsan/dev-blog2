@@ -3,12 +3,12 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "contentlayer2 build && next build --webpack && node -r esbuild-register ./scripts/postbuild.mjs",
-    "start": "next dev --webpack",
-    "dev": "next dev --webpack",
-    "typecheck": "contentlayer2 build && tsc --noEmit",
+    "build": "node scripts/generate-content.mjs && next build --webpack && node -r esbuild-register ./scripts/postbuild.mjs",
+    "start": "node scripts/dev.mjs",
+    "dev": "node scripts/dev.mjs",
+    "typecheck": "node scripts/generate-content.mjs && tsc --noEmit",
     "serve": "next start",
-    "analyze": "cross-env ANALYZE=true next build --webpack",
+    "analyze": "node scripts/generate-content.mjs && cross-env ANALYZE=true next build --webpack",
     "lint": "eslint . --max-warnings=0",
     "test": "node --test scripts/*.test.mjs",
     "verify": "node scripts/verify-build.mjs"
@@ -22,7 +22,6 @@
     "github-slugger": "^2.0.0",
     "next": "16.4.5",
     "next-themes": "0.4.6",
-    "pliny": "0.4.1",
     "postcss": "8.5.32",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -37,9 +36,15 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "tailwindcss": "3.4.19",
-    "next-contentlayer2": "0.5.8",
     "sharp": "0.35.5",
-    "contentlayer2": "0.5.8"
+    "@giscus/react": "3.1.0",
+    "gray-matter": "4.0.3",
+    "mdx-bundler": "10.1.1",
+    "remark": "15.0.1",
+    "unist-util-visit": "5.2.0",
+    "mdast-util-to-string": "4.0.0",
+    "probe-image-size": "7.5.0",
+    "js-yaml": "4.3.2"
   },
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",
@@ -81,7 +86,6 @@
     "katex": "0.19.1",
     "@typescript-eslint/typescript-estree": {
       "minimatch": "11.0.5"
-    },
-    "@opentelemetry/propagator-jaeger": "2.9.0"
+    }
   }
 }

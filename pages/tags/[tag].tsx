@@ -3,7 +3,7 @@ import siteMetadata from '@/data/siteMetadata'
 import ListLayout from '@/layouts/ListLayout'
 import { kebabCase } from '@/data/tagUtils'
 import { getAllTags } from '@/data/tagUtils'
-import { allCoreContent } from 'pliny/utils/contentlayer.js'
+import { allCoreContent } from '@/components/contentUtils'
 import { InferGetStaticPropsType } from 'next'
 import { allBlogs } from 'contentlayer/generated'
 

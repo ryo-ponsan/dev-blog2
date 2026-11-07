@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import siteMetadata from '@/data/siteMetadata'
-import { CoreContent } from 'pliny/utils/contentlayer.js'
+import { CoreContent } from '@/components/contentUtils'
 import type { Blog, Authors } from 'contentlayer/generated'
 interface CommonSEOProps {
   title: string

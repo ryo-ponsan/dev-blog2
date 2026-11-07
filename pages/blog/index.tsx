@@ -1,7 +1,7 @@
 import siteMetadata from '@/data/siteMetadata'
 import ListLayout from '@/layouts/ListLayout'
 import { PageSEO } from '@/components/SEO'
-import { sortedBlogPost, allCoreContent } from 'pliny/utils/contentlayer.js'
+import { sortedBlogPost, allCoreContent } from '@/components/contentUtils'
 import { InferGetStaticPropsType } from 'next'
 import { allBlogs } from 'contentlayer/generated'
 import type { Blog } from 'contentlayer/generated'
