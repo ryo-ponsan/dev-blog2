@@ -1,5 +1,9 @@
 # CLAUDE.md - AI Assistant Guide for dev-blog2
 
+@AGENTS.md
+
+Read AGENTS.md first for shared editorial, personal AI operation, and publishing rules. The technical guide below supplements it.
+
 ## Project Overview
 
 This is a personal blog built with **Next.js 13 (Pages Router)**, **Tailwind CSS**, and **Contentlayer**. The theme is based on Tailwind Nextjs Starter Blog (Pliny) with custom modifications.
@@ -10,16 +14,16 @@ This is a personal blog built with **Next.js 13 (Pages Router)**, **Tailwind CSS
 
 ## Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| Framework | Next.js 13.1.6 (Pages Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS 3.x |
-| Content | Contentlayer (MDX) |
-| UI Library | Pliny 0.0.10 |
-| Comments | Giscus (GitHub Discussions) |
-| Newsletter | Buttondown |
-| Deployment | Vercel |
+| Category   | Technology                    |
+| ---------- | ----------------------------- |
+| Framework  | Next.js 13.1.6 (Pages Router) |
+| Language   | TypeScript                    |
+| Styling    | Tailwind CSS 3.x              |
+| Content    | Contentlayer (MDX)            |
+| UI Library | Pliny 0.0.10                  |
+| Comments   | Giscus (GitHub Discussions)   |
+| Newsletter | Buttondown                    |
+| Deployment | Vercel                        |
 
 ## Directory Structure
 
@@ -68,14 +72,14 @@ This is a personal blog built with **Next.js 13 (Pages Router)**, **Tailwind CSS
 
 ## Key Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `contentlayer.config.ts` | Contentlayer schema for Blog and Authors |
-| `data/siteMetadata.js` | Site title, URL, social links, comments, analytics |
-| `next.config.js` | Next.js config with Contentlayer, security headers |
-| `tailwind.config.js` | Tailwind theme, typography, dark mode |
-| `tsconfig.json` | TypeScript config with path aliases |
-| `.eslintrc.js` | ESLint rules (TypeScript, React, a11y) |
+| File                     | Purpose                                            |
+| ------------------------ | -------------------------------------------------- |
+| `contentlayer.config.ts` | Contentlayer schema for Blog and Authors           |
+| `data/siteMetadata.js`   | Site title, URL, social links, comments, analytics |
+| `next.config.js`         | Next.js config with Contentlayer, security headers |
+| `tailwind.config.js`     | Tailwind theme, typography, dark mode              |
+| `tsconfig.json`          | TypeScript config with path aliases                |
+| `.eslintrc.js`           | ESLint rules (TypeScript, React, a11y)             |
 
 ## Development Commands
 
@@ -123,18 +127,18 @@ Post content in MDX format...
 
 ### Frontmatter Fields
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `title` | Yes | Post title |
-| `date` | Yes | Publication date (YYYY-MM-DD) |
-| `tags` | No | Array of tag strings |
-| `draft` | No | Set `true` to hide from production |
-| `summary` | No | Short description for listings |
-| `authors` | No | Array of author slugs (default: `['default']`) |
-| `images` | No | Array of image paths for SEO |
-| `layout` | No | Custom layout (default: `PostLayout`) |
-| `lastmod` | No | Last modified date |
-| `canonicalUrl` | No | Canonical URL if cross-posted |
+| Field          | Required | Description                                    |
+| -------------- | -------- | ---------------------------------------------- |
+| `title`        | Yes      | Post title                                     |
+| `date`         | Yes      | Publication date (YYYY-MM-DD)                  |
+| `tags`         | No       | Array of tag strings                           |
+| `draft`        | No       | Set `true` to hide from production             |
+| `summary`      | No       | Short description for listings                 |
+| `authors`      | No       | Array of author slugs (default: `['default']`) |
+| `images`       | No       | Array of image paths for SEO                   |
+| `layout`       | No       | Custom layout (default: `PostLayout`)          |
+| `lastmod`      | No       | Last modified date                             |
+| `canonicalUrl` | No       | Canonical URL if cross-posted                  |
 
 ### Adding an Author
 
@@ -186,6 +190,7 @@ Author bio in MDX...
 ### Components Available in MDX
 
 Defined in `components/MDXComponents.tsx`:
+
 - `Image` - Next.js optimized image
 - `TOCInline` - Table of contents
 - `a` (CustomLink) - Internal/external link handling
@@ -195,27 +200,35 @@ Defined in `components/MDXComponents.tsx`:
 ## Important Notes
 
 ### Content Location
+
 - **Always place blog posts in `data/blog/`** - The `blog/` folder in root is NOT processed
 - Contentlayer processes files from `data/` directory only
 - Pattern for blog: `{blog,old}/**/*.mdx`
 - Pattern for authors: `authors/**/*.mdx`
 
 ### Image Paths
+
 - Place images in `public/static/images/`
 - Reference with leading slash: `/static/images/example.png`
 
 ### Environment Variables
+
 For local development, create `.env.local` from `.env.example`:
+
 - Giscus comments: `NEXT_PUBLIC_GISCUS_*` variables
 - Newsletter: `BUTTONDOWN_API_KEY`
 
 ### Pre-commit Hooks
+
 Husky runs lint-staged on commit:
+
 - ESLint fix for `.js`, `.jsx`, `.ts`, `.tsx`
 - Prettier format for code and content files
 
 ### Security Headers
+
 Configured in `next.config.js`:
+
 - CSP includes Giscus domain
 - X-Frame-Options: DENY
 - Strict HSTS
@@ -223,14 +236,18 @@ Configured in `next.config.js`:
 ## Common Tasks
 
 ### Change Site Metadata
+
 Edit `data/siteMetadata.js`:
+
 - `title`, `author`, `description`
 - `siteUrl` for production URL
 - `comments.giscusConfig` for comment settings
 - `analytics` for tracking providers
 
 ### Add Navigation Link
+
 Edit `data/headerNavLinks.ts`:
+
 ```ts
 const headerNavLinks = [
   { href: '/blog', title: 'Blog' },
@@ -239,7 +256,9 @@ const headerNavLinks = [
 ```
 
 ### Change Theme Colors
+
 Edit `tailwind.config.js`:
+
 ```js
 colors: {
   primary: colors.sky,  // Change to colors.blue, etc.
@@ -248,7 +267,9 @@ colors: {
 ```
 
 ### Switch to Light Mode Default
+
 In `data/siteMetadata.js`:
+
 ```js
 theme: 'light', // 'system', 'dark', or 'light'
 ```
@@ -256,6 +277,7 @@ theme: 'light', // 'system', 'dark', or 'light'
 ## Build & Deploy
 
 ### Local Build
+
 ```bash
 npm run build
 # Generates:
@@ -267,23 +289,27 @@ npm run build
 ```
 
 ### Vercel Deployment
-- Push to main branch triggers deploy
+
+- The owner uses develop (tracking origin/develop) for publishing. Push the intended commit and verify the Vercel deployment and public article; do not assume main is the production branch.
 - Set environment variables in Vercel dashboard
 - Node.js 22.x runtime (specified in `package.json` engines)
 
 ## Troubleshooting
 
 ### Contentlayer Issues
+
 - Run `rm -rf .contentlayer` and rebuild
 - Check MDX frontmatter syntax (YAML format)
 - Ensure dates are valid ISO format
 
 ### Build Failures
+
 - Check for TypeScript errors: `npx tsc --noEmit`
 - Check ESLint: `npm run lint`
 - Verify all imports resolve correctly
 
 ### Missing Posts
+
 - Confirm file is in `data/blog/` (not root `blog/`)
 - Check `draft: false` in frontmatter
 - Verify date format is valid
